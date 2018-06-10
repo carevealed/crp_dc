@@ -149,7 +149,7 @@ def add_asset_elements(root_metadata_element):
     So you just need to create a new 'create_instantiation' function
     that takes the Assetpart element as parent.
     '''
-def create_instantiations(AssetPart_element, instantation_counter, status):
+def create_instantiations(AssetPart_element, instantation_counter, generation):
     '''
     Create instantiations and build relationships.
     '''
@@ -159,11 +159,13 @@ def create_instantiations(AssetPart_element, instantation_counter, status):
         parent=AssetPart_element,
         dc_element='instantations'
     )
+    instantiations_element.attrib["relationship"] = 'Page %s' % str(instantation_counter)
     instantiation_element = create_assets_element(
         index=99,
         parent=instantiations_element,
         dc_element='instantation'
     )
+    instantiations_element.attrib["generation"] = generation
     technical_element = create_assets_element(
         index=99,
         parent=instantiation_element,
@@ -309,7 +311,7 @@ def main():
                             digitizerManufacturer,
                             digitizerModel,
                             imageProducer
-                        ) = create_instantiations(AssetPart_element, instantiation_counter, status)
+                        ) = create_instantiations(AssetPart_element, instantiation_counter, generation)
                        
                         md5.text = ''
                         exiftool_json = get_exiftool_json(full_folder_path)
