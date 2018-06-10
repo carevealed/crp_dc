@@ -13,14 +13,13 @@ def get_exiftool_json(source):
     '''
     Returns JSON object of exiftool output
     '''
-    print source
     exiftool_json = subprocess.check_output([
         'exiftool',
         '-J',
         source
     ])
     parsed = json.loads(exiftool_json)
-    print json.dumps(parsed, indent=4, sort_keys=True)
+    #print json.dumps(parsed, indent=4, sort_keys=True)
     return parsed[0]
 
 
@@ -206,7 +205,6 @@ def analyse_folder(folder_name):
     Analyze a folder to figure out how complex he package is. Create dictionary
     that lists checksum path, access copy, preservation copy.
     '''
-    print 'hi'
     file_info_list = []
     print file_info_list
     contents = sorted(os.listdir(folder_name))
@@ -214,10 +212,10 @@ def analyse_folder(folder_name):
     for files in contents:
         if files.endswith('prsv.tif'):
             dictionary = {}
-            dictionary['master'] = files
-            dictionary['access'] = files.replace('prsv.tif', 'access.jpg')
-            dictionary['access_checksum'] = dictionary['access'] + '.md5'
-            dictionary['master_checksum'] = dictionary['master'] + '.md5'
+            dictionary['Preservation'] = os.path.join(folder_name, files)
+            dictionary['Access'] = os.path.join(folder_name, files.replace('prsv.tif', 'access.jpg'))
+            dictionary['access_checksum'] = dictionary['Access'] + '.md5'
+            dictionary['master_checksum'] = dictionary['Preservation'] + '.md5'
             file_info_list.append(dictionary)
     print file_info_list
     return file_info_list
@@ -293,38 +291,39 @@ def main():
                     vendorQualityControlNotes.text = csv_record['Quality Control Notes']
                     instantiation_counter = 1
                     for package in package_info:
-                    
-                        (   digitalFileIdentifier,
-                            creationDate,
-                            fileExtension,
-                            standardAndFileWrapper,
-                            size,
-                            bitDepth,
-                            imageWidth,
-                            imageLength,
-                            compression,
-                            samplesPerPixel, 
-                            xResolution,
-                            yResolution,
-                            md5,
-                            creatingApplicationAndVersion,
-                            derivedFrom,
-                            digitizerManufacturer,
-                            digitizerModel,
-                            imageProducer
-                        ) = create_instantiations(AssetPart_element, instantiation_counter, generation='preservation')
-                        md5.text = ''
-                        exiftool_json = get_exiftool_json(full_folder_path)
-                        standardAndFileWrapper.text = exiftool_json['MIMEType']
-                        fileExtension.text = exiftool_json["FileTypeExtension"]
-                        # Strings needed as INTs returned for some reason..
-                        bitDepth.text = str(exiftool_json['BitsPerSample'])
-                        imageWidth.text = str(exiftool_json["ImageWidth"])
-                        imageLength.text = str(exiftool_json["ImageHeight"])
-                        #compression.text = str(exiftool_json["Compression"])
-                        xResolution.text = str(exiftool_json["XResolution"])
-                        yResolution.text = str(exiftool_json["YResolution"])
-                        #samplesPerPixel.text = str(exiftool_json["ColorComponents"])
+                        for sub_item in package:
+                            if sub_item == 'Access' or sub_item == 'Preservation':
+                                (   digitalFileIdentifier,
+                                    creationDate,
+                                    fileExtension,
+                                    standardAndFileWrapper,
+                                    size,
+                                    bitDepth,
+                                    imageWidth,
+                                    imageLength,
+                                    compression,
+                                    samplesPerPixel, 
+                                    xResolution,
+                                    yResolution,
+                                    md5,
+                                    creatingApplicationAndVersion,
+                                    derivedFrom,
+                                    digitizerManufacturer,
+                                    digitizerModel,
+                                    imageProducer
+                                ) = create_instantiations(AssetPart_element, instantiation_counter, generation=sub_item)
+                                md5.text = ''
+                                exiftool_json = get_exiftool_json(package[sub_item])
+                                standardAndFileWrapper.text = exiftool_json['MIMEType']
+                                fileExtension.text = exiftool_json["FileTypeExtension"]
+                                # Strings needed as INTs returned for some reason..
+                                bitDepth.text = str(exiftool_json['BitsPerSample'])
+                                imageWidth.text = str(exiftool_json["ImageWidth"])
+                                imageLength.text = str(exiftool_json["ImageHeight"])
+                                #compression.text = str(exiftool_json["Compression"])
+                                xResolution.text = str(exiftool_json["XResolution"])
+                                yResolution.text = str(exiftool_json["YResolution"])
+                                #samplesPerPixel.text = str(exiftool_json["ColorComponents"])
                     
                     with open(csv_record['Object Identifier'] + 'dc_metadata.xml', 'w') as outFile:
                         dublin_core_object.write(outFile, xml_declaration = True, encoding='UTF-8', pretty_print=True)
