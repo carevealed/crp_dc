@@ -165,7 +165,7 @@ def create_instantiations(AssetPart_element, instantation_counter, generation):
         parent=instantiations_element,
         dc_element='instantation'
     )
-    instantiations_element.attrib["generation"] = generation
+    instantiation_element.attrib["generation"] = generation
     technical_element = create_assets_element(
         index=99,
         parent=instantiation_element,
