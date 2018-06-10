@@ -46,6 +46,7 @@ def add_dc_elements(root_metadata_element, dc_namespace):
             'rights',
             'rights',
             'language',
+            'date'
         ]:
         element = create_dc_element(
             index=counter,
@@ -81,7 +82,11 @@ def create_dc_element(index, parent, dc_element, dublin_core_namespace):
     parent.insert(index, dc_element)
     return dc_element
 
-
+def extract_checksum(manifest):
+    with open(manifest, 'r') as manifest_object:
+        manifest_line = manifest_object.readlines()
+    checksum = manifest_line[0][:32]
+    return checksum
 def create_assets_element(index, parent, dc_element):
     '''
     Adds an empty metadata element to dublin_core_object
@@ -245,7 +250,8 @@ def main():
                         dc_creator,
                         dc_rights,
                         dc_rights_country,
-                        dc_language
+                        dc_language,
+                        dc_date
                     ) = add_dc_elements(root_metadata_element, dc_namespace)
                     dc_identifier.attrib["{%s}type" % xsi_namespace] = "dcterms:URI"
                     dc_rights_country.attrib["type"] = 'Country of Creation'
@@ -257,8 +263,10 @@ def main():
                     dc_title.text = csv_record['Main or Supplied Title']
                     dc_creator.text = csv_record['Creator']
                     dc_identifier.text = csv_record['Internet Archive URL']
-                    dc_type.text = csv_record['Format']
-                    
+                    dc_type.text = csv_record['Type']
+                    dc_date.attrib["type"] = 'Issued'
+                    dc_date.text = csv_record['Date Published']
+                    dc_language.text = csv_record['Language']
                     term_list = []
                     for term in ['medium', 'extent', 'extent', 'created']:
                         dc_term = create_dc_element(
@@ -269,6 +277,8 @@ def main():
                         )
                         term_list.append(dc_term)
                     medium, extent_total, extent_dimensions, created = term_list
+                    extent_total.text = csv_record['Total Number of Pages']
+                    medium.text = csv_record['Format'] 
                     extent_dimensions.text = csv_record['Extent (dimensions)']
                     # why is there an equals character and quotes in the CSV?
                     created.text = csv_record['Date Created']
@@ -332,6 +342,12 @@ def main():
                                 imageLength.text = str(exiftool_json["ImageHeight"])
                                 xResolution.text = str(exiftool_json["XResolution"])
                                 yResolution.text = str(exiftool_json["YResolution"])
+                                if sub_item == 'Preservation':
+                                    derivedFrom.text = csv_record['Object Identifier']
+                                    md5.text = extract_checksum(package['master_checksum'])
+                                elif sub_item == 'Access':
+                                    derivedFrom.text = os.path.basename(package['Preservation'])
+                                    md5.text = extract_checksum(package['access_checksum'])
                                 try:
                                     samplesPerPixel.text = str(exiftool_json["ColorComponents"])
                                 except KeyError:
@@ -340,6 +356,18 @@ def main():
                                     compression.text = str(exiftool_json["Compression"])
                                 except KeyError:
                                     compression.getparent().remove(compression)
+                                try:
+                                    creatingApplicationAndVersion.text = str(exiftool_json["CreatorTool"])
+                                except KeyError:
+                                    creatingApplicationAndVersion.getparent().remove(creatingApplicationAndVersion)
+                                try:
+                                    digitizerManufacturer.text = str(exiftool_json["Make"])
+                                except KeyError:
+                                    digitizerManufacturer.getparent().remove(digitizerManufacturer)
+                                try:
+                                    digitizerModel.text = str(exiftool_json["Model"])
+                                except KeyError:
+                                    digitizerModel.getparent().remove(digitizerModel)
                         instantiation_counter += 1
                     with open(csv_record['Object Identifier'] + 'dc_metadata.xml', 'w') as outFile:
                         dublin_core_object.write(outFile, xml_declaration = True, encoding='UTF-8', pretty_print=True)
