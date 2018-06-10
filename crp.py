@@ -152,6 +152,7 @@ def create_instantiations(AssetPart_element, instantation_counter, generation):
     '''
     Create instantiations and build relationships.
     '''
+    counter = 1
     instantiation_element_list = []
     instantiations_element = create_assets_element(
         index=99,
@@ -170,7 +171,6 @@ def create_instantiations(AssetPart_element, instantation_counter, generation):
         parent=instantiation_element,
         dc_element='technical'
     )
-    counter = 1
     for elements in [
             'digitalFileIdentifier',
             'creationDate',
@@ -291,7 +291,7 @@ def main():
                     vendorQualityControlNotes.text = csv_record['Quality Control Notes']
                     instantiation_counter = 1
                     for package in package_info:
-                        for sub_item in package:
+                        for sub_item in sorted(package.keys(), reverse=True):
                             if sub_item == 'Access' or sub_item == 'Preservation':
                                 (   digitalFileIdentifier,
                                     creationDate,
@@ -324,6 +324,7 @@ def main():
                                 xResolution.text = str(exiftool_json["XResolution"])
                                 yResolution.text = str(exiftool_json["YResolution"])
                                 #samplesPerPixel.text = str(exiftool_json["ColorComponents"])
+                        instantiation_counter += 1
                     
                     with open(csv_record['Object Identifier'] + 'dc_metadata.xml', 'w') as outFile:
                         dublin_core_object.write(outFile, xml_declaration = True, encoding='UTF-8', pretty_print=True)
