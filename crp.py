@@ -263,12 +263,7 @@ def main():
                     dc_creator.text = csv_record['Creator']
                     dc_identifier.text = csv_record['Internet Archive URL']
                     dc_type.text = csv_record['Format']
-                    callNumber.text = csv_record['Call Number']
-                    projectIdentifier.text = csv_record['Project Identifier']
-                    objectIdentifier.text = csv_record['Object Identifier']
-                    assetType.text = csv_record['Asset Type']
-                    description.text = csv_record['Description or Content Summary']
-                    vendorQualityControlNotes.text = csv_record['Quality Control Notes']
+                    
                     term_list = []
                     for term in ['medium', 'extent', 'extent', 'created']:
                         dc_term = create_dc_element(
@@ -290,6 +285,12 @@ def main():
                         description,
                         vendorQualityControlNotes
                     ), AssetPart_element = add_asset_elements(root_metadata_element)
+                    callNumber.text = csv_record['Call Number']
+                    projectIdentifier.text = csv_record['Project Identifier']
+                    objectIdentifier.text = csv_record['Object Identifier']
+                    assetType.text = csv_record['Asset Type']
+                    description.text = csv_record['Description or Content Summary']
+                    vendorQualityControlNotes.text = csv_record['Quality Control Notes']
                     instantiation_counter = 1
                     for package in package_info:
                     
@@ -311,8 +312,7 @@ def main():
                             digitizerManufacturer,
                             digitizerModel,
                             imageProducer
-                        ) = create_instantiations(AssetPart_element, instantiation_counter, generation)
-                       
+                        ) = create_instantiations(AssetPart_element, instantiation_counter, generation='preservation')
                         md5.text = ''
                         exiftool_json = get_exiftool_json(full_folder_path)
                         standardAndFileWrapper.text = exiftool_json['MIMEType']
