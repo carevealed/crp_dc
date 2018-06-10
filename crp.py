@@ -149,7 +149,7 @@ def add_asset_elements(root_metadata_element):
     So you just need to create a new 'create_instantiation' function
     that takes the Assetpart element as parent.
     '''
-def create_instantiations(AssetPart_element):
+def create_instantiations(AssetPart_element, instantation_counter, status):
     '''
     Create instantiations and build relationships.
     '''
@@ -252,6 +252,21 @@ def main():
                     ) = add_dc_elements(root_metadata_element, dc_namespace)
                     dc_identifier.attrib["{%s}type" % xsi_namespace] = "dcterms:URI"
                     dc_rights_country.attrib["type"] = 'Country of Creation'
+                    dc_rights.text = csv_record['Copyright Statement']
+                    dc_rights_country.text = csv_record['Country of Creation']
+                    dc_crp_provenance.text = 'California Revealed Project'
+                    dc_provenance.text = csv_record['Institution']
+                    dc_format.text = csv_record['Generation']
+                    dc_title.text = csv_record['Main or Supplied Title']
+                    dc_creator.text = csv_record['Creator']
+                    dc_identifier.text = csv_record['Internet Archive URL']
+                    dc_type.text = csv_record['Format']
+                    callNumber.text = csv_record['Call Number']
+                    projectIdentifier.text = csv_record['Project Identifier']
+                    objectIdentifier.text = csv_record['Object Identifier']
+                    assetType.text = csv_record['Asset Type']
+                    description.text = csv_record['Description or Content Summary']
+                    vendorQualityControlNotes.text = csv_record['Quality Control Notes']
                     term_list = []
                     for term in ['medium', 'extent', 'extent', 'created']:
                         dc_term = create_dc_element(
@@ -273,52 +288,42 @@ def main():
                         description,
                         vendorQualityControlNotes
                     ), AssetPart_element = add_asset_elements(root_metadata_element)
-                    (   digitalFileIdentifier,
-                        creationDate,
-                        fileExtension,
-                        standardAndFileWrapper,
-                        size,
-                        bitDepth,
-                        imageWidth,
-                        imageLength,
-                        compression,
-                        samplesPerPixel, 
-                        xResolution,
-                        yResolution,
-                        md5,
-                        creatingApplicationAndVersion,
-                        derivedFrom,
-                        digitizerManufacturer,
-                        digitizerModel,
-                        imageProducer
-                    ) = create_instantiations(AssetPart_element)
-                    dc_rights.text = csv_record['Copyright Statement']
-                    dc_rights_country.text = csv_record['Country of Creation']
-                    dc_crp_provenance.text = 'California Revealed Project'
-                    dc_provenance.text = csv_record['Institution']
-                    dc_format.text = csv_record['Generation']
-                    dc_title.text = csv_record['Main or Supplied Title']
-                    dc_creator.text = csv_record['Creator']
-                    dc_identifier.text = csv_record['Internet Archive URL']
-                    dc_type.text = csv_record['Format']
-                    md5.text = ''
-                    exiftool_json = get_exiftool_json(full_folder_path)
-                    standardAndFileWrapper.text = exiftool_json['MIMEType']
-                    fileExtension.text = exiftool_json["FileTypeExtension"]
-                    # Strings needed as INTs returned for some reason..
-                    bitDepth.text = str(exiftool_json['BitsPerSample'])
-                    imageWidth.text = str(exiftool_json["ImageWidth"])
-                    imageLength.text = str(exiftool_json["ImageHeight"])
-                    #compression.text = str(exiftool_json["Compression"])
-                    xResolution.text = str(exiftool_json["XResolution"])
-                    yResolution.text = str(exiftool_json["YResolution"])
-                    #samplesPerPixel.text = str(exiftool_json["ColorComponents"])
-                    callNumber.text = csv_record['Call Number']
-                    projectIdentifier.text = csv_record['Project Identifier']
-                    objectIdentifier.text = csv_record['Object Identifier']
-                    assetType.text = csv_record['Asset Type']
-                    description.text = csv_record['Description or Content Summary']
-                    vendorQualityControlNotes.text = csv_record['Quality Control Notes']
+                    instantiation_counter = 1
+                    for package in package_info:
+                    
+                        (   digitalFileIdentifier,
+                            creationDate,
+                            fileExtension,
+                            standardAndFileWrapper,
+                            size,
+                            bitDepth,
+                            imageWidth,
+                            imageLength,
+                            compression,
+                            samplesPerPixel, 
+                            xResolution,
+                            yResolution,
+                            md5,
+                            creatingApplicationAndVersion,
+                            derivedFrom,
+                            digitizerManufacturer,
+                            digitizerModel,
+                            imageProducer
+                        ) = create_instantiations(AssetPart_element, instantiation_counter, status)
+                       
+                        md5.text = ''
+                        exiftool_json = get_exiftool_json(full_folder_path)
+                        standardAndFileWrapper.text = exiftool_json['MIMEType']
+                        fileExtension.text = exiftool_json["FileTypeExtension"]
+                        # Strings needed as INTs returned for some reason..
+                        bitDepth.text = str(exiftool_json['BitsPerSample'])
+                        imageWidth.text = str(exiftool_json["ImageWidth"])
+                        imageLength.text = str(exiftool_json["ImageHeight"])
+                        #compression.text = str(exiftool_json["Compression"])
+                        xResolution.text = str(exiftool_json["XResolution"])
+                        yResolution.text = str(exiftool_json["YResolution"])
+                        #samplesPerPixel.text = str(exiftool_json["ColorComponents"])
+                    
                     with open(csv_record['Object Identifier'] + 'dc_metadata.xml', 'w') as outFile:
                         dublin_core_object.write(outFile, xml_declaration = True, encoding='UTF-8', pretty_print=True)
     print 'Transformed XML files have been saved in %s' % os.getcwd()
