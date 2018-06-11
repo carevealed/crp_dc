@@ -25,13 +25,16 @@ def get_exiftool_json(source):
 
 def make_dc_object():
     '''
-    Generates a minimal lxml Dublin Core object.
+    Generates a minimal lxml Dublin Core object containing the DC namespace header.
     '''
     header = "<metadata xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:dc='http://purl.org/dc/elements/1.1/' xmlns:dcterms='http://purl.org/dc/terms/'></metadata>"
     dublin_core_object = ET.ElementTree(ET.fromstring(header))
     return dublin_core_object
 
 def add_dc_elements(root_metadata_element, dc_namespace):
+    '''
+    Adds some of the basic DC elements to the XML object.
+    '''
     counter = 1
     element_list = []
     for elements in [
@@ -56,7 +59,7 @@ def add_dc_elements(root_metadata_element, dc_namespace):
         element_list.append(element)
         counter += 1
     return element_list
-def extract_metadata(csv_file):
+def csv_extract(csv_file):
     '''
     Read the csv and store the data in a list of dictionaries.
     '''
@@ -82,10 +85,14 @@ def create_dc_element(index, parent, dc_element, dublin_core_namespace):
     return dc_element
 
 def extract_checksum(manifest):
+    '''
+    Extracts the MD5 checksum from a manifest.
+    '''
     with open(manifest, 'r') as manifest_object:
         manifest_line = manifest_object.readlines()
     checksum = manifest_line[0][:32]
     return checksum
+
 def create_assets_element(index, parent, dc_element):
     '''
     Adds an empty metadata element to dublin_core_object
@@ -118,7 +125,11 @@ def parse_args():
     )
     parsed_args = parser.parse_args()
     return parsed_args
+
 def add_asset_elements(root_metadata_element):
+    '''
+    Adds the Asset level elements.
+    '''
     asset_element_list = []
     Assets_element = create_assets_element(
         index=99,
@@ -231,7 +242,7 @@ def main():
     dc_terms_namespace = 'http://purl.org/dc/terms/'
     xsi_namespace = 'http://www.w3.org/2001/XMLSchema-instance'
     # Extracts metadata from the CSV file.
-    md = extract_metadata(args.csv)
+    md = csv_extract(args.csv)
     source_folder = args.i
     folder_contents = os.listdir(source_folder)
     for folder in folder_contents:
