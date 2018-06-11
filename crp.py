@@ -311,7 +311,9 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
                 md5.text = ''
                 exiftool_json = get_exiftool_json(package[sub_item])
                 digitalFileIdentifier.text = os.path.basename(package[sub_item])
+                # This replaces the colons with dashes via the exiftool output.
                 creationDate.text = exiftool_json['FileModifyDate'].replace(':', '-', 2)[:19]
+                # megabytes rounded to two decimal places.
                 size.text = str(round(os.path.getsize(package[sub_item]) / 1024 / 1024.0, 2))
                 size.attrib['unit'] = 'megabytes'
                 standardAndFileWrapper.text = exiftool_json['MIMEType']
