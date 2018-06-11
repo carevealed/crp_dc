@@ -20,11 +20,11 @@ def parse_args():
     )
     parser.add_argument(
         '-i',
-        help='full path of input directory'
+        help='full path of input directory', required=True
     )
     parser.add_argument(
         '-csv',
-        help='Full path to Islandora metadata CSV.'
+        help='Full path to Islandora metadata CSV.', required=True
     )
     parsed_args = parser.parse_args()
     return parsed_args
@@ -423,9 +423,9 @@ def main():
                     description.text = csv_record['Description or Content Summary']
                     vendorQualityControlNotes.text = csv_record['Quality Control Notes']
                     techncial_metadata(package_info, AssetPart_element, csv_record)
-                    with open(csv_record['Object Identifier'] + 'dc_metadata.xml', 'w') as outFile:
+                    with open(os.path.join(full_folder_path, csv_record['Object Identifier']) + '_metadata.xml', 'w') as outFile:
                         dublin_core_object.write(outFile, xml_declaration=True, encoding='UTF-8', pretty_print=True)
-    print 'Transformed XML files have been saved in %s' % os.getcwd()
+    print('Finished')
 
 
 if __name__ == '__main__':
