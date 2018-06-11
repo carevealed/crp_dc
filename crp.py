@@ -322,7 +322,7 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
                 # Strings needed as INTs returned for some reason..
                 if len(str(exiftool_json['BitsPerSample'])) > 1:
                     # Probably best to find some other way of getting
-                    # a bits per pixel value rather than this
+                    # a bits per pixel value rather than this method.
                     bits = str(exiftool_json['BitsPerSample']).split()
                     bits = [int(i) for i in bits]
                     bitDepth.text = str(sum(bits))
@@ -368,9 +368,16 @@ def main():
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
     dc_terms_namespace = 'http://purl.org/dc/terms/'
     xsi_namespace = 'http://www.w3.org/2001/XMLSchema-instance'
+    # check if input is a CSV file
+    if not args.csv.endswith('.csv'):
+        print('The file that you provided with the -csv option is not a CSV file')
+        print('Exiting...')
+        sys.exit()
     # Extracts metadata from the CSV file.
     csv_data = csv_extract(args.csv)
     source_folder = args.i
+    print('California Revealed Project Dublin Core Metadata Generator')
+    print('The following folder: %s will be analysed against this CSV file: %s') % (args.i, args.csv)
     folder_contents = os.listdir(source_folder)
     for folder in folder_contents:
         full_folder_path = os.path.join(source_folder, folder)
