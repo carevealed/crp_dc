@@ -379,7 +379,7 @@ def main():
     print('\nCalifornia Revealed Project Dublin Core Metadata Generator')
     print('The following folder: %s will be analysed against this CSV file: %s') % (args.i, args.csv)
     folder_contents = os.listdir(source_folder)
-    for folder in folder_contents:
+    for folder in sorted(folder_contents):
         full_folder_path = os.path.join(source_folder, folder)
         if os.path.isdir(full_folder_path):
             # Loop through all records in the CSV.
