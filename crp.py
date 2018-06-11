@@ -374,9 +374,9 @@ def main():
         print('Exiting...')
         sys.exit()
     # Extracts metadata from the CSV file.
-    csv_data = csv_extract(args.csv)
+    csv_data = sorted(csv_extract(args.csv))
     source_folder = args.i
-    print('California Revealed Project Dublin Core Metadata Generator')
+    print('\nCalifornia Revealed Project Dublin Core Metadata Generator')
     print('The following folder: %s will be analysed against this CSV file: %s') % (args.i, args.csv)
     folder_contents = os.listdir(source_folder)
     for folder in folder_contents:
