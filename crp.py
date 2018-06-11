@@ -28,7 +28,6 @@ def make_dc_object():
     Generates a minimal lxml Dublin Core object.
     '''
     header = "<metadata xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:dc='http://purl.org/dc/elements/1.1/' xmlns:dcterms='http://purl.org/dc/terms/'></metadata>"
-    metadata_parent_element = ET.fromstring(header)
     dublin_core_object = ET.ElementTree(ET.fromstring(header))
     return dublin_core_object
 
@@ -127,32 +126,25 @@ def add_asset_elements(root_metadata_element):
         dc_element='Assets'
     )
     for asset_level_elements in [
-        'objectIdentifier',
-        'callNumber',
-        'projectIdentifier',
-        'assetType',
-        'description',
-        'vendorQualityControlNotes'
+            'objectIdentifier',
+            'callNumber',
+            'projectIdentifier',
+            'assetType',
+            'description',
+            'vendorQualityControlNotes'
     ]:
         am = create_assets_element(
-        index=99,
-        parent=Assets_element,
-        dc_element=asset_level_elements
-    )
+            index=99,
+            parent=Assets_element,
+            dc_element=asset_level_elements
+        )
         asset_element_list.append(am)
     AssetPart_element = create_assets_element(
         index=99,
         parent=Assets_element,
         dc_element='AssetPart'
-    )
+        )
     return asset_element_list, AssetPart_element
-    '''
-    Should stop here as all the above will be in every description,
-    regardless of complexity. What follows will need relationship
-    metadata and counters, regardless of complexity.
-    So you just need to create a new 'create_instantiation' function
-    that takes the Assetpart element as parent.
-    '''
 def create_instantiations(AssetPart_element, instantation_counter, generation):
     '''
     Create instantiations and build relationships.
@@ -215,30 +207,45 @@ def analyse_folder(folder_name):
     for files in contents:
         if files.endswith('prsv.tif'):
             dictionary = {}
-            dictionary['Preservation'] = os.path.join(folder_name, files)
-            dictionary['Access'] = os.path.join(folder_name, files.replace('prsv.tif', 'access.jpg'))
-            dictionary['access_checksum'] = dictionary['Access'] + '.md5'
-            dictionary['master_checksum'] = dictionary['Preservation'] + '.md5'
+            dictionary[
+                'Preservation'
+            ] = os.path.join(folder_name, files)
+            dictionary[
+                'Access'
+            ] = os.path.join(folder_name, files.replace('prsv.tif', 'access.jpg'))
+            dictionary[
+                'access_checksum'
+            ] = dictionary['Access'] + '.md5'
+            dictionary[
+                'master_checksum'
+            ] = dictionary['Preservation'] + '.md5'
             file_info_list.append(dictionary)
     return file_info_list
-        
+
+
 def main():
+    # Create args object which holds the command line arguments.
     args = parse_args()
-    
+    # Declare appropriate XML namespaces.
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
     dc_terms_namespace = 'http://purl.org/dc/terms/'
     xsi_namespace = 'http://www.w3.org/2001/XMLSchema-instance'
+    # Extracts metadata from the CSV file.
     md = extract_metadata(args.csv)
     source_folder = args.i
     folder_contents = os.listdir(source_folder)
     for folder in folder_contents:
         full_folder_path = os.path.join(source_folder, folder)
         if os.path.isdir(full_folder_path):
+            # Loop through all records in the CSV.
             for csv_record in md:
+                # Only proceed if the Object Identifier in the CSV record matches
+                # the folder name that is currently being analysed.
                 if csv_record['Object Identifier'] == folder:
                     print('Found %s, processing...') % folder
                     package_info = analyse_folder(full_folder_path)
                     dublin_core_object = make_dc_object()
+                    # Sets up a bunch of empty Dublin Core XML elements.
                     root_metadata_element = dublin_core_object.getroot()
                     (
                         dc_identifier,
@@ -253,6 +260,7 @@ def main():
                         dc_language,
                         dc_date
                     ) = add_dc_elements(root_metadata_element, dc_namespace)
+                    # Populate the empty elements with the corresponding CSV field.
                     dc_identifier.attrib["{%s}type" % xsi_namespace] = "dcterms:URI"
                     dc_rights_country.attrib["type"] = 'Country of Creation'
                     dc_rights.text = csv_record['Copyright Statement']
@@ -278,17 +286,16 @@ def main():
                         term_list.append(dc_term)
                     medium, extent_total, extent_dimensions, created = term_list
                     extent_total.text = csv_record['Total Number of Pages']
-                    medium.text = csv_record['Format'] 
+                    medium.text = csv_record['Format']
                     extent_dimensions.text = csv_record['Extent (dimensions)']
                     # why is there an equals character and quotes in the CSV?
                     created.text = csv_record['Date Created']
-                       
-                    (   objectIdentifier,
-                        callNumber,
-                        projectIdentifier,
-                        assetType,
-                        description,
-                        vendorQualityControlNotes
+                    (objectIdentifier,
+                     callNumber,
+                     projectIdentifier,
+                     assetType,
+                     description,
+                     vendorQualityControlNotes
                     ), AssetPart_element = add_asset_elements(root_metadata_element)
                     callNumber.text = csv_record['Call Number']
                     projectIdentifier.text = csv_record['Project Identifier']
@@ -300,24 +307,24 @@ def main():
                     for package in package_info:
                         for sub_item in sorted(package.keys(), reverse=True):
                             if sub_item == 'Access' or sub_item == 'Preservation':
-                                (   digitalFileIdentifier,
-                                    creationDate,
-                                    fileExtension,
-                                    standardAndFileWrapper,
-                                    size,
-                                    bitDepth,
-                                    imageWidth,
-                                    imageLength,
-                                    compression,
-                                    samplesPerPixel, 
-                                    xResolution,
-                                    yResolution,
-                                    md5,
-                                    creatingApplicationAndVersion,
-                                    derivedFrom,
-                                    digitizerManufacturer,
-                                    digitizerModel,
-                                    imageProducer
+                                (digitalFileIdentifier,
+                                 creationDate,
+                                 fileExtension,
+                                 standardAndFileWrapper,
+                                 size,
+                                 bitDepth,
+                                 imageWidth,
+                                 imageLength,
+                                 compression,
+                                 samplesPerPixel,
+                                 xResolution,
+                                 yResolution,
+                                 md5,
+                                 creatingApplicationAndVersion,
+                                 derivedFrom,
+                                 digitizerManufacturer,
+                                 digitizerModel,
+                                 imageProducer
                                 ) = create_instantiations(AssetPart_element, instantiation_counter, generation=sub_item)
                                 md5.text = ''
                                 exiftool_json = get_exiftool_json(package[sub_item])
@@ -337,7 +344,7 @@ def main():
                                     print bits
                                     bitDepth.text = str(sum(bits))
                                 else:
-                                    bitDepth.text = str(int(exiftool_json['BitsPerSample']) * int(exiftool_json["ColorComponents" ]))
+                                    bitDepth.text = str(int(exiftool_json['BitsPerSample']) * int(exiftool_json["ColorComponents"]))
                                 imageWidth.text = str(exiftool_json["ImageWidth"])
                                 imageLength.text = str(exiftool_json["ImageHeight"])
                                 xResolution.text = str(exiftool_json["XResolution"])
@@ -370,7 +377,7 @@ def main():
                                     digitizerModel.getparent().remove(digitizerModel)
                         instantiation_counter += 1
                     with open(csv_record['Object Identifier'] + 'dc_metadata.xml', 'w') as outFile:
-                        dublin_core_object.write(outFile, xml_declaration = True, encoding='UTF-8', pretty_print=True)
+                        dublin_core_object.write(outFile, xml_declaration=True, encoding='UTF-8', pretty_print=True)
     print 'Transformed XML files have been saved in %s' % os.getcwd()
 
 if __name__ == '__main__':
