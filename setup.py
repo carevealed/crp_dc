@@ -6,6 +6,6 @@ setup(
     scripts=['crp.py'],
     license='MIT',
     install_requires=['lxml'],
-    name='crp',
+    name='crp_dc',
     version='0.2'
 )
