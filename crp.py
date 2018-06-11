@@ -233,7 +233,115 @@ def analyse_folder(folder_name):
             file_info_list.append(dictionary)
     return file_info_list
 
+def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
+    print('Found %s, processing...') % folder
+    dublin_core_object = make_dc_object()
+    # Sets up a bunch of empty Dublin Core XML elements.
+    root_metadata_element = dublin_core_object.getroot()
+    (
+        dc_identifier,
+        dc_crp_provenance,
+        dc_provenance,
+        dc_type,
+        dc_format,
+        dc_title,
+        dc_creator,
+        dc_rights,
+        dc_rights_country,
+        dc_language,
+        dc_date
+    ) = add_dc_elements(root_metadata_element, dc_namespace)
+    # Populate the empty elements with the corresponding CSV field.
+    dc_identifier.attrib["{%s}type" % xsi_namespace] = "dcterms:URI"
+    dc_rights_country.attrib["type"] = 'Country of Creation'
+    dc_rights.text = csv_record['Copyright Statement']
+    dc_rights_country.text = csv_record['Country of Creation']
+    dc_crp_provenance.text = 'California Revealed Project'
+    dc_provenance.text = csv_record['Institution']
+    dc_format.text = csv_record['Generation']
+    dc_title.text = csv_record['Main or Supplied Title']
+    dc_creator.text = csv_record['Creator']
+    dc_identifier.text = csv_record['Internet Archive URL']
+    dc_type.text = csv_record['Type']
+    dc_date.attrib["type"] = 'Issued'
+    dc_date.text = csv_record['Date Published']
+    dc_language.text = csv_record['Language']
+    return root_metadata_element, dublin_core_object
 
+def techncial_metadata(package_info, AssetPart_element, csv_record):
+    instantiation_counter = 1
+    for package in package_info:
+        for sub_item in sorted(package.keys(), reverse=True):
+            if sub_item == 'Access' or sub_item == 'Preservation':
+                (digitalFileIdentifier,
+                 creationDate,
+                 fileExtension,
+                 standardAndFileWrapper,
+                 size,
+                 bitDepth,
+                 imageWidth,
+                 imageLength,
+                 compression,
+                 samplesPerPixel,
+                 xResolution,
+                 yResolution,
+                 md5,
+                 creatingApplicationAndVersion,
+                 derivedFrom,
+                 digitizerManufacturer,
+                 digitizerModel,
+                 imageProducer
+                ) = create_instantiations(AssetPart_element, instantiation_counter, generation=sub_item)
+                md5.text = ''
+                exiftool_json = get_exiftool_json(package[sub_item])
+                digitalFileIdentifier.text = os.path.basename(package[sub_item])
+                creationDate.text = exiftool_json['FileModifyDate']
+                size.text = exiftool_json['FileSize']
+                if 'kB' in size.text:
+                    size.attrib['unit'] = 'kilobytes'
+                elif 'MB' in size.text:
+                    size.attrib['unit'] = 'megabytes'
+                standardAndFileWrapper.text = exiftool_json['MIMEType']
+                fileExtension.text = exiftool_json["FileTypeExtension"]
+                # Strings needed as INTs returned for some reason..
+                if len(str(exiftool_json['BitsPerSample'])) > 1:
+                    bits = str(exiftool_json['BitsPerSample']).split()
+                    bits = [int(i) for i in bits]
+                    print bits
+                    bitDepth.text = str(sum(bits))
+                else:
+                    bitDepth.text = str(int(exiftool_json['BitsPerSample']) * int(exiftool_json["ColorComponents"]))
+                imageWidth.text = str(exiftool_json["ImageWidth"])
+                imageLength.text = str(exiftool_json["ImageHeight"])
+                xResolution.text = str(exiftool_json["XResolution"])
+                yResolution.text = str(exiftool_json["YResolution"])
+                if sub_item == 'Preservation':
+                    derivedFrom.text = csv_record['Object Identifier']
+                    md5.text = extract_checksum(package['master_checksum'])
+                elif sub_item == 'Access':
+                    derivedFrom.text = os.path.basename(package['Preservation'])
+                    md5.text = extract_checksum(package['access_checksum'])
+                try:
+                    samplesPerPixel.text = str(exiftool_json["ColorComponents"])
+                except KeyError:
+                    samplesPerPixel.getparent().remove(samplesPerPixel)
+                try:
+                    compression.text = str(exiftool_json["Compression"])
+                except KeyError:
+                    compression.getparent().remove(compression)
+                try:
+                    creatingApplicationAndVersion.text = str(exiftool_json["CreatorTool"])
+                except KeyError:
+                    creatingApplicationAndVersion.getparent().remove(creatingApplicationAndVersion)
+                try:
+                    digitizerManufacturer.text = str(exiftool_json["Make"])
+                except KeyError:
+                    digitizerManufacturer.getparent().remove(digitizerManufacturer)
+                try:
+                    digitizerModel.text = str(exiftool_json["Model"])
+                except KeyError:
+                    digitizerModel.getparent().remove(digitizerModel)
+        instantiation_counter += 1
 def main():
     # Create args object which holds the command line arguments.
     args = parse_args()
@@ -242,50 +350,24 @@ def main():
     dc_terms_namespace = 'http://purl.org/dc/terms/'
     xsi_namespace = 'http://www.w3.org/2001/XMLSchema-instance'
     # Extracts metadata from the CSV file.
-    md = csv_extract(args.csv)
+    csv_data = csv_extract(args.csv)
     source_folder = args.i
     folder_contents = os.listdir(source_folder)
     for folder in folder_contents:
         full_folder_path = os.path.join(source_folder, folder)
         if os.path.isdir(full_folder_path):
             # Loop through all records in the CSV.
-            for csv_record in md:
+            for csv_record in csv_data:
                 # Only proceed if the Object Identifier in the CSV record matches
                 # the folder name that is currently being analysed.
+                package_info = analyse_folder(full_folder_path)
                 if csv_record['Object Identifier'] == folder:
-                    print('Found %s, processing...') % folder
-                    package_info = analyse_folder(full_folder_path)
-                    dublin_core_object = make_dc_object()
-                    # Sets up a bunch of empty Dublin Core XML elements.
-                    root_metadata_element = dublin_core_object.getroot()
-                    (
-                        dc_identifier,
-                        dc_crp_provenance,
-                        dc_provenance,
-                        dc_type,
-                        dc_format,
-                        dc_title,
-                        dc_creator,
-                        dc_rights,
-                        dc_rights_country,
-                        dc_language,
-                        dc_date
-                    ) = add_dc_elements(root_metadata_element, dc_namespace)
-                    # Populate the empty elements with the corresponding CSV field.
-                    dc_identifier.attrib["{%s}type" % xsi_namespace] = "dcterms:URI"
-                    dc_rights_country.attrib["type"] = 'Country of Creation'
-                    dc_rights.text = csv_record['Copyright Statement']
-                    dc_rights_country.text = csv_record['Country of Creation']
-                    dc_crp_provenance.text = 'California Revealed Project'
-                    dc_provenance.text = csv_record['Institution']
-                    dc_format.text = csv_record['Generation']
-                    dc_title.text = csv_record['Main or Supplied Title']
-                    dc_creator.text = csv_record['Creator']
-                    dc_identifier.text = csv_record['Internet Archive URL']
-                    dc_type.text = csv_record['Type']
-                    dc_date.attrib["type"] = 'Issued'
-                    dc_date.text = csv_record['Date Published']
-                    dc_language.text = csv_record['Language']
+                    root_metadata_element, dublin_core_object = add_DC_metadata(
+                        folder,
+                        dc_namespace,
+                        xsi_namespace,
+                        csv_record
+                    )
                     term_list = []
                     for term in ['medium', 'extent', 'extent', 'created']:
                         dc_term = create_dc_element(
@@ -314,79 +396,7 @@ def main():
                     assetType.text = csv_record['Asset Type']
                     description.text = csv_record['Description or Content Summary']
                     vendorQualityControlNotes.text = csv_record['Quality Control Notes']
-                    instantiation_counter = 1
-                    for package in package_info:
-                        for sub_item in sorted(package.keys(), reverse=True):
-                            if sub_item == 'Access' or sub_item == 'Preservation':
-                                (digitalFileIdentifier,
-                                 creationDate,
-                                 fileExtension,
-                                 standardAndFileWrapper,
-                                 size,
-                                 bitDepth,
-                                 imageWidth,
-                                 imageLength,
-                                 compression,
-                                 samplesPerPixel,
-                                 xResolution,
-                                 yResolution,
-                                 md5,
-                                 creatingApplicationAndVersion,
-                                 derivedFrom,
-                                 digitizerManufacturer,
-                                 digitizerModel,
-                                 imageProducer
-                                ) = create_instantiations(AssetPart_element, instantiation_counter, generation=sub_item)
-                                md5.text = ''
-                                exiftool_json = get_exiftool_json(package[sub_item])
-                                digitalFileIdentifier.text = os.path.basename(package[sub_item])
-                                creationDate.text = exiftool_json['FileModifyDate']
-                                size.text = exiftool_json['FileSize']
-                                if 'kB' in size.text:
-                                    size.attrib['unit'] = 'kilobytes'
-                                elif 'MB' in size.text:
-                                    size.attrib['unit'] = 'megabytes'
-                                standardAndFileWrapper.text = exiftool_json['MIMEType']
-                                fileExtension.text = exiftool_json["FileTypeExtension"]
-                                # Strings needed as INTs returned for some reason..
-                                if len(str(exiftool_json['BitsPerSample'])) > 1:
-                                    bits = str(exiftool_json['BitsPerSample']).split()
-                                    bits = [int(i) for i in bits]
-                                    print bits
-                                    bitDepth.text = str(sum(bits))
-                                else:
-                                    bitDepth.text = str(int(exiftool_json['BitsPerSample']) * int(exiftool_json["ColorComponents"]))
-                                imageWidth.text = str(exiftool_json["ImageWidth"])
-                                imageLength.text = str(exiftool_json["ImageHeight"])
-                                xResolution.text = str(exiftool_json["XResolution"])
-                                yResolution.text = str(exiftool_json["YResolution"])
-                                if sub_item == 'Preservation':
-                                    derivedFrom.text = csv_record['Object Identifier']
-                                    md5.text = extract_checksum(package['master_checksum'])
-                                elif sub_item == 'Access':
-                                    derivedFrom.text = os.path.basename(package['Preservation'])
-                                    md5.text = extract_checksum(package['access_checksum'])
-                                try:
-                                    samplesPerPixel.text = str(exiftool_json["ColorComponents"])
-                                except KeyError:
-                                    samplesPerPixel.getparent().remove(samplesPerPixel)
-                                try:
-                                    compression.text = str(exiftool_json["Compression"])
-                                except KeyError:
-                                    compression.getparent().remove(compression)
-                                try:
-                                    creatingApplicationAndVersion.text = str(exiftool_json["CreatorTool"])
-                                except KeyError:
-                                    creatingApplicationAndVersion.getparent().remove(creatingApplicationAndVersion)
-                                try:
-                                    digitizerManufacturer.text = str(exiftool_json["Make"])
-                                except KeyError:
-                                    digitizerManufacturer.getparent().remove(digitizerManufacturer)
-                                try:
-                                    digitizerModel.text = str(exiftool_json["Model"])
-                                except KeyError:
-                                    digitizerModel.getparent().remove(digitizerModel)
-                        instantiation_counter += 1
+                    techncial_metadata(package_info, AssetPart_element, csv_record)
                     with open(csv_record['Object Identifier'] + 'dc_metadata.xml', 'w') as outFile:
                         dublin_core_object.write(outFile, xml_declaration=True, encoding='UTF-8', pretty_print=True)
     print 'Transformed XML files have been saved in %s' % os.getcwd()
