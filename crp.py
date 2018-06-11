@@ -269,6 +269,9 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     return root_metadata_element, dublin_core_object
 
 def techncial_metadata(package_info, AssetPart_element, csv_record):
+    '''
+    Create technical metadata for instantiations
+    '''
     instantiation_counter = 1
     for package in package_info:
         for sub_item in sorted(package.keys(), reverse=True):
