@@ -311,12 +311,9 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
                 md5.text = ''
                 exiftool_json = get_exiftool_json(package[sub_item])
                 digitalFileIdentifier.text = os.path.basename(package[sub_item])
-                creationDate.text = exiftool_json['FileModifyDate']
-                size.text = exiftool_json['FileSize']
-                if 'kB' in size.text:
-                    size.attrib['unit'] = 'kilobytes'
-                elif 'MB' in size.text:
-                    size.attrib['unit'] = 'megabytes'
+                creationDate.text = exiftool_json['FileModifyDate'].replace(':', '-', 2)[:19]
+                size.text = str(round(os.path.getsize(package[sub_item]) / 1024 / 1024.0, 2))
+                size.attrib['unit'] = 'megabytes'
                 standardAndFileWrapper.text = exiftool_json['MIMEType']
                 fileExtension.text = exiftool_json["FileTypeExtension"]
                 # Strings needed as INTs returned for some reason..
