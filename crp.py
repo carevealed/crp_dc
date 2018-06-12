@@ -69,7 +69,7 @@ def analyse_folder(folder_name):
 
 
 def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
-    print('Found %s, processing...') % folder
+    print('- Found %s, processing...') % folder
     dublin_core_object = make_dc_object()
     # Sets up a bunch of empty Dublin Core XML elements.
     root_metadata_element = dublin_core_object.getroot()
@@ -373,16 +373,16 @@ def find_csv(source_directory):
             csv_path = os.path.join(source_directory, files)
             continue
     if csv_path == '':
-        print('No CSV found in your source directory. Either declare the location of the CSV file manually or place the CSV in %s') % source_directory
-        print('Exiting')
+        print('- No CSV found in your source directory. Either declare the location of the CSV file manually or place the CSV in %s') % source_directory
+        print('- Exiting')
         sys.exit()
-    print('This CSV file will be used as the metadata source: %s') % csv_path
+    print('- This CSV file will be used as the metadata source: %s') % csv_path
     return csv_path
 
 
 def main():
     # Create args object which holds the command line arguments.
-    print('\nCalifornia Revealed Project Dublin Core Metadata Generator')
+    print('\n- California Revealed Project Dublin Core Metadata Generator')
     args = parse_args()
     # Declare appropriate XML namespaces.
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
@@ -393,8 +393,8 @@ def main():
     if args.csv:
         # check if input is a CSV file
         if not args.csv.endswith('.csv'):
-            print('The file that you provided with the -csv option is not a CSV file')
-            print('Exiting...')
+            print('- The file that you provided with the -csv option is not a CSV file')
+            print('- Exiting...')
             sys.exit()
         else:
             csv_file = args.csv
@@ -403,7 +403,7 @@ def main():
     # Extracts metadata from the CSV file.
     csv_data = sorted(csv_extract(csv_file))
     source_folder = args.i
-    print('The following folder: %s will be analysed against this CSV file: %s') % (args.i, csv_file)
+    print('- The following folder: %s will be analysed against this CSV file: %s') % (args.i, csv_file)
     folder_contents = os.listdir(source_folder)
     for folder in sorted(folder_contents):
         full_folder_path = os.path.join(source_folder, folder)
@@ -451,7 +451,7 @@ def main():
                     techncial_metadata(package_info, AssetPart_element, csv_record)
                     with open(os.path.join(full_folder_path, csv_record['Object Identifier']) + '_metadata.xml', 'w') as outFile:
                         dublin_core_object.write(outFile, xml_declaration=True, encoding='UTF-8', pretty_print=True)
-    print('Finished')
+    print('- Finished')
 
 
 if __name__ == '__main__':
