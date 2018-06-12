@@ -5,6 +5,7 @@ Requires EXIFTOOL
 import argparse
 import csv
 import os
+import sys
 import json
 import subprocess
 import lxml.etree as ET
@@ -24,7 +25,7 @@ def parse_args():
     )
     parser.add_argument(
         '-csv',
-        help='Full path to Islandora metadata CSV.', required=True
+        help='Full path to Islandora metadata CSV.'
     )
     parsed_args = parser.parse_args()
     return parsed_args
@@ -360,23 +361,49 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
         instantiation_counter += 1
 
 
+def find_csv(source_directory):
+    '''
+    Attempts to find a CSV file in the source directory.
+    This will just use the first CSV that it finds.
+    '''
+    csv_path = ''
+    file_list = os.listdir(source_directory)
+    for files in file_list:
+        if files.endswith('.csv'):
+            csv_path = os.path.join(source_directory, files)
+            continue
+    if csv_path == '':
+        print('No CSV found in your source directory. Either declare the location of the CSV file manually or place the CSV in %s') % source_directory
+        print('Exiting')
+        sys.exit()
+    print('This CSV file will be used as the metadata source: %s') % csv_path
+    return csv_path
+
+
 def main():
     # Create args object which holds the command line arguments.
+    print('\nCalifornia Revealed Project Dublin Core Metadata Generator')
     args = parse_args()
     # Declare appropriate XML namespaces.
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
     dc_terms_namespace = 'http://purl.org/dc/terms/'
     xsi_namespace = 'http://www.w3.org/2001/XMLSchema-instance'
-    # check if input is a CSV file
-    if not args.csv.endswith('.csv'):
-        print('The file that you provided with the -csv option is not a CSV file')
-        print('Exiting...')
-        sys.exit()
+    # Check if a CSV is declared with the -csv flag, or if the CSV is present
+    # in the source directory.
+    if args.csv:
+        # check if input is a CSV file
+        if not args.csv.endswith('.csv'):
+            print('The file that you provided with the -csv option is not a CSV file')
+            print('Exiting...')
+            sys.exit()
+        else:
+            csv_file = args.csv
+    else:
+        csv_file = find_csv(args.i)
     # Extracts metadata from the CSV file.
-    csv_data = sorted(csv_extract(args.csv))
+    csv_data = sorted(csv_extract(csv_file))
     source_folder = args.i
-    print('\nCalifornia Revealed Project Dublin Core Metadata Generator')
-    print('The following folder: %s will be analysed against this CSV file: %s') % (args.i, args.csv)
+    print('The following folder: %s will be analysed against this CSV file: %s') % (args.i, csv_file)
     folder_contents = os.listdir(source_folder)
     for folder in sorted(folder_contents):
         full_folder_path = os.path.join(source_folder, folder)
