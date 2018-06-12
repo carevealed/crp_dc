@@ -32,6 +32,10 @@ Finally, you can install the script by entering
 
 This will also install the `lxml` python XML processing library.
 
+### upgrading
+To upgrade the script, enter:
+`pip install crp_dc -U`
+
 ### usage
 The script takes two arguments:
 
