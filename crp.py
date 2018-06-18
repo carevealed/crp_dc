@@ -370,8 +370,9 @@ def find_csv(source_directory):
     file_list = os.listdir(source_directory)
     for files in file_list:
         if files.endswith('.csv'):
-            csv_path = os.path.join(source_directory, files)
-            continue
+            if not files.startswith('.'):
+                csv_path = os.path.join(source_directory, files)
+                continue
     if csv_path == '':
         print('- No CSV found in your source directory. Either declare the location of the CSV file manually or place the CSV in %s') % source_directory
         print('- Exiting')
