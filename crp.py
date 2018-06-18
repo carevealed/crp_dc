@@ -36,7 +36,7 @@ def csv_extract(csv_file):
     Read the csv and store the data in a list of dictionaries.
     '''
     object_dictionaries = []
-    input_file = csv.DictReader(open(csv_file))
+    input_file = csv.DictReader(open(csv_file, 'rU'))
     for rows in input_file:
         object_dictionaries.append(rows)
     return object_dictionaries
