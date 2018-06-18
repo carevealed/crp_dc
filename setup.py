@@ -7,5 +7,5 @@ setup(
     license='MIT',
     install_requires=['lxml'],
     name='crp_dc',
-    version='0.5'
+    version='0.6'
 )
