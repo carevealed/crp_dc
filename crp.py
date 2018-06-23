@@ -437,7 +437,12 @@ def main():
                         )
                         term_list.append(dc_term)
                     medium, extent_total, extent_dimensions, created = term_list
-                    extent_total.text = csv_record['Total Number of Pages']
+                    try:
+                        extent_total.text = csv_record['Total Number of Pages']
+                    except KeyError:
+                        print('- "Total Number of Pages" value is missing from CSV')
+                        print('- Using "Total Number of Reels or Tapes" instead')
+                        extent_total.text = csv_record['Total Number of Reels or Tapes']
                     medium.text = csv_record['Format']
                     extent_dimensions.text = csv_record['Extent (dimensions)']
                     # why is there an equals character and quotes in the CSV?
