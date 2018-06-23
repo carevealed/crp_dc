@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 '''
 Requires EXIFTOOL
 '''
@@ -383,7 +383,7 @@ def find_csv(source_directory):
 
 def main():
     # Create args object which holds the command line arguments.
-    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.6')
+    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.7')
     args = parse_args()
     # Declare appropriate XML namespaces.
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
@@ -411,10 +411,16 @@ def main():
         if os.path.isdir(full_folder_path):
             # Loop through all records in the CSV.
             for csv_record in csv_data:
+
                 # Only proceed if the Object Identifier in the CSV record matches
                 # the folder name that is currently being analysed.
                 package_info = analyse_folder(full_folder_path)
                 if csv_record['Object Identifier'] == folder:
+                    for values in csv_record:
+                        # Check if any CSV values have unnecessary quotes and equals signs.
+                        if '=' in csv_record[values]:
+                            if csv_record[values][0:2] == '=\"':
+                                csv_record[values] = csv_record[values][2:][:-1]
                     root_metadata_element, dublin_core_object = add_DC_metadata(
                         folder,
                         dc_namespace,
