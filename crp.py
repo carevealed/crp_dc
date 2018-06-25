@@ -383,7 +383,7 @@ def find_csv(source_directory):
 
 def main():
     # Create args object which holds the command line arguments.
-    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.9')
+    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.10')
     args = parse_args()
     # Declare appropriate XML namespaces.
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
@@ -440,9 +440,14 @@ def main():
                     try:
                         extent_total.text = csv_record['Total Number of Pages']
                     except KeyError:
-                        print('- "Total Number of Pages" value is missing from CSV')
-                        print('- Using "Total Number of Reels or Tapes" instead')
-                        extent_total.text = csv_record['Total Number of Reels or Tapes']
+                        try:
+                            print('- "Total Number of Pages" value is missing from CSV')
+                            print('- Using "Total number of pages" instead')
+                            extent_total.text = csv_record['Total number of pages']
+                        except KeyError:
+                            print('- "Total Number of Pages" value is missing from CSV')
+                            print('- Using "Total Number of Reels or Tapes" instead')
+                            extent_total.text = csv_record['Total Number of Reels or Tapes']
                     medium.text = csv_record['Format']
                     extent_dimensions.text = csv_record['Extent (dimensions)']
                     # why is there an equals character and quotes in the CSV?
