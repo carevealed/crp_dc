@@ -101,7 +101,7 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     dc_date.attrib["type"] = 'Published'
     dc_date.text = csv_record['Date Published']
     dc_language.text = csv_record['Language']
-    return root_metadata_element, dublin_core_object
+    return root_metadata_element, dublin_core_object, dc_creator
 
 
 def create_dc_element(index, parent, dc_element, dublin_core_namespace):
@@ -421,14 +421,14 @@ def main():
                         if '=' in csv_record[values]:
                             if csv_record[values][0:2] == '=\"':
                                 csv_record[values] = csv_record[values][2:][:-1]
-                    root_metadata_element, dublin_core_object = add_DC_metadata(
+                    root_metadata_element, dublin_core_object, creator = add_DC_metadata(
                         folder,
                         dc_namespace,
                         xsi_namespace,
                         csv_record
                     )
                     term_list = []
-                    for term in ['created', 'extent', 'extent', 'medium']:
+                    for term in ['extent', 'extent', 'medium']:
                         dc_term = create_dc_element(
                             index=5,
                             parent=root_metadata_element,
@@ -436,7 +436,16 @@ def main():
                             dublin_core_namespace=dc_terms_namespace
                         )
                         term_list.append(dc_term)
-                    created, extent_total, extent_dimensions, medium = term_list
+                    extent_total, extent_dimensions, medium = term_list
+                    # Quick and dirty hack to move the created element below the creator element :(
+                    creator_index = creator.getparent().index(creator)
+                    created = create_dc_element(
+                            index=creator_index + 1,
+                            parent=root_metadata_element,
+                            dc_element='created',
+                            dublin_core_namespace=dc_terms_namespace
+                        )
+                    # end of quick/dirty hack :(((
                     try:
                         extent_total.text = csv_record['Total Number of Pages']
                     except KeyError:
