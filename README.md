@@ -16,15 +16,43 @@ Transforms legacy CSV metadata into Dublin Core XML, and extracting technical me
 - `pip`
 
 ### installation
-Most likely `python` is already installed on OSX. The easiest way to install the scripts is via the python package manager `pip`.
+
+#### python
+
+`python` is installed by default on OSX. You can verify that it is installed by typing:
+
+`python`
+
+in the terminal. You should see something like:
+```
+$ python
+Python 2.7.12 (default, Dec  4 2017, 14:50:18) 
+[GCC 5.4.0 20160609] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+```
+
+if `python` is installed. If `python` is not installed, then the easiest method of doing so is with `homebrew`.
+In order to install `homebrew`, follow the instructions at https://brew.sh/
+
+and when `homebrew` has installed, type:
+`brew install python`
+in order to install `python`.
+
+#### installing pip
+
+The easiest way to install the script is via the python package manager `pip`.
 
 In order to install `pip` on OSX, enter `sudo easy_install pip` in the terminal.
+
+#### installing ExifTool
 
 You may have to install `exiftool` as this is used to extract technical metadata.
 
 If using homebrew this can be installed with:
 
 `brew install exiftool`
+
+#### installing the crp_dc script
 
 Finally, you can install the script by entering
 
