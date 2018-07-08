@@ -98,7 +98,7 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     dc_creator.text = csv_record['Creator']
     dc_identifier.text = csv_record['Internet Archive URL']
     dc_type.text = csv_record['Type']
-    dc_date.attrib["type"] = 'Issued'
+    dc_date.attrib["type"] = 'Published
     dc_date.text = csv_record['Date Published']
     dc_language.text = csv_record['Language']
     return root_metadata_element, dublin_core_object
