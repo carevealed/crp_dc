@@ -91,7 +91,7 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     dc_rights_country.attrib["type"] = 'Country of Creation'
     dc_rights.text = csv_record['Copyright Statement']
     dc_rights_country.text = csv_record['Country of Creation']
-    dc_crp_provenance.text = 'California Revealed Project'
+    dc_crp_provenance.text = 'California Revealed'
     dc_provenance.text = csv_record['Institution']
     dc_format.text = csv_record['Generation']
     dc_title.text = csv_record['Main or Supplied Title']
