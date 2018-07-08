@@ -81,10 +81,10 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
         dc_format,
         dc_title,
         dc_creator,
+        dc_date,
         dc_rights,
         dc_rights_country,
         dc_language,
-        dc_date
     ) = add_dc_elements(root_metadata_element, dc_namespace)
     # Populate the empty elements with the corresponding CSV field.
     dc_identifier.attrib["{%s}type" % xsi_namespace] = "dcterms:URI"
@@ -188,10 +188,10 @@ def add_dc_elements(root_metadata_element, dc_namespace):
             'format',
             'title',
             'creator',
+            'date',
             'rights',
             'rights',
             'language',
-            'date'
         ]:
         element = create_dc_element(
             index=counter,
@@ -428,7 +428,7 @@ def main():
                         csv_record
                     )
                     term_list = []
-                    for term in ['medium', 'extent', 'extent', 'created']:
+                    for term in ['created', 'extent', 'extent', 'medium']:
                         dc_term = create_dc_element(
                             index=5,
                             parent=root_metadata_element,
@@ -436,7 +436,7 @@ def main():
                             dublin_core_namespace=dc_terms_namespace
                         )
                         term_list.append(dc_term)
-                    medium, extent_total, extent_dimensions, created = term_list
+                    created, extent_total, extent_dimensions, medium = term_list
                     try:
                         extent_total.text = csv_record['Total Number of Pages']
                     except KeyError:
