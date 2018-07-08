@@ -475,6 +475,10 @@ def main():
                     description.text = csv_record['Description or Content Summary']
                     vendorQualityControlNotes.text = csv_record['Quality Control Notes']
                     techncial_metadata(package_info, AssetPart_element, csv_record)
+                    # This will delete any collapsed, empty elements, such as </description>.
+                    # it will not delete an uncollapsed empty element, such as <description></decription?
+                    for element in root_metadata_element.xpath(".//*[not(node())]"):
+                        element.getparent().remove(element)
                     with open(os.path.join(full_folder_path, csv_record['Object Identifier']) + '_metadata.xml', 'w') as outFile:
                         dublin_core_object.write(outFile, xml_declaration=True, encoding='UTF-8', pretty_print=True)
     print('- Finished')
