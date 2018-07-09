@@ -81,10 +81,10 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
         dc_format,
         dc_title,
         dc_creator,
+        dc_date,
         dc_rights,
         dc_rights_country,
         dc_language,
-        dc_date
     ) = add_dc_elements(root_metadata_element, dc_namespace)
     # Populate the empty elements with the corresponding CSV field.
     dc_identifier.attrib["{%s}type" % xsi_namespace] = "dcterms:URI"
@@ -98,10 +98,10 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     dc_creator.text = csv_record['Creator']
     dc_identifier.text = csv_record['Internet Archive URL']
     dc_type.text = csv_record['Type']
-    dc_date.attrib["type"] = 'Issued'
+    dc_date.attrib["type"] = 'Published'
     dc_date.text = csv_record['Date Published']
     dc_language.text = csv_record['Language']
-    return root_metadata_element, dublin_core_object
+    return root_metadata_element, dublin_core_object, dc_creator
 
 
 def create_dc_element(index, parent, dc_element, dublin_core_namespace):
@@ -188,10 +188,10 @@ def add_dc_elements(root_metadata_element, dc_namespace):
             'format',
             'title',
             'creator',
+            'date',
             'rights',
             'rights',
             'language',
-            'date'
         ]:
         element = create_dc_element(
             index=counter,
@@ -421,14 +421,14 @@ def main():
                         if '=' in csv_record[values]:
                             if csv_record[values][0:2] == '=\"':
                                 csv_record[values] = csv_record[values][2:][:-1]
-                    root_metadata_element, dublin_core_object = add_DC_metadata(
+                    root_metadata_element, dublin_core_object, creator = add_DC_metadata(
                         folder,
                         dc_namespace,
                         xsi_namespace,
                         csv_record
                     )
                     term_list = []
-                    for term in ['medium', 'extent', 'extent', 'created']:
+                    for term in ['extent', 'extent', 'medium']:
                         dc_term = create_dc_element(
                             index=5,
                             parent=root_metadata_element,
@@ -436,7 +436,16 @@ def main():
                             dublin_core_namespace=dc_terms_namespace
                         )
                         term_list.append(dc_term)
-                    medium, extent_total, extent_dimensions, created = term_list
+                    extent_total, extent_dimensions, medium = term_list
+                    # Quick and dirty hack to move the created element below the creator element :(
+                    creator_index = creator.getparent().index(creator)
+                    created = create_dc_element(
+                            index=creator_index + 1,
+                            parent=root_metadata_element,
+                            dc_element='created',
+                            dublin_core_namespace=dc_terms_namespace
+                        )
+                    # end of quick/dirty hack :(((
                     try:
                         extent_total.text = csv_record['Total Number of Pages']
                     except KeyError:
@@ -466,6 +475,10 @@ def main():
                     description.text = csv_record['Description or Content Summary']
                     vendorQualityControlNotes.text = csv_record['Quality Control Notes']
                     techncial_metadata(package_info, AssetPart_element, csv_record)
+                    # This will delete any collapsed, empty elements, such as </description>.
+                    # it will not delete an uncollapsed empty element, such as <description></decription?
+                    for element in root_metadata_element.xpath(".//*[not(node())]"):
+                        element.getparent().remove(element)
                     with open(os.path.join(full_folder_path, csv_record['Object Identifier']) + '_metadata.xml', 'w') as outFile:
                         dublin_core_object.write(outFile, xml_declaration=True, encoding='UTF-8', pretty_print=True)
     print('- Finished')
