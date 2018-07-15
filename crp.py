@@ -85,6 +85,10 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
         dc_rights,
         dc_rights_country,
         dc_language,
+        dc_identifier_cdnp,
+        dc_description_volume,
+        dc_description_issue,
+        dc_coverage
     ) = add_dc_elements(root_metadata_element, dc_namespace)
     # Populate the empty elements with the corresponding CSV field.
     dc_identifier.attrib["{%s}type" % xsi_namespace] = "dcterms:URI"
@@ -101,6 +105,14 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     dc_date.attrib["type"] = 'Published'
     dc_date.text = csv_record['Date Published']
     dc_language.text = csv_record['Language']
+    dc_identifier_cdnp.text = csv_record['CDNP Identifier']
+    dc_identifier_cdnp.attrib["type"] = 'CDNP identifier'
+    dc_description_volume.text = csv_record['Serial Volume']
+    dc_description_volume.attrib["type"] = 'serial volume'
+    dc_description_issue.text = csv_record['Serial Issue']
+    dc_description_issue.attrib["type"] = 'serial issue'
+    dc_coverage.text = csv_record['Publication Location']
+    dc_coverage.attrib["type"] = 'publication location'
     return root_metadata_element, dublin_core_object, dc_creator
 
 
@@ -192,6 +204,10 @@ def add_dc_elements(root_metadata_element, dc_namespace):
             'rights',
             'rights',
             'language',
+            'identifier',
+            'description',
+            'description',
+            'coverage'
         ]:
         element = create_dc_element(
             index=counter,
