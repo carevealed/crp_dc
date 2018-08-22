@@ -71,7 +71,7 @@ If using homebrew this can be installed with:
 #### installing the crp_dc script
 Finally, you can install the script by entering
 
-`pip install crp_dc`
+`sudo pip install crp_dc`
 
 This will also install the `lxml` python XML processing library.
 
