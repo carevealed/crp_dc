@@ -78,7 +78,7 @@ This will also install the `lxml` python XML processing library.
 ---
 ### upgrading
 To upgrade the script, enter:
-`pip install crp_dc -U`
+`sudo pip install crp_dc -U`
 
 ---
 ### usage
