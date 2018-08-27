@@ -41,6 +41,22 @@ def csv_extract(csv_file):
         object_dictionaries.append(rows)
     return object_dictionaries
 
+def check_for_macroman(csv_record):
+    '''
+    Some CSV files use macroman encoding instead of utf-8.
+    This particularly shows up in the use of spaces.
+    This function will check if a field contains these encodings,
+    and it will decode them so that they display correctly.
+    This may result in incorrect character encodings if non UTF-8
+    CSV data is encoded using something other than macroman.
+    '''
+    for field in csv_record:
+        try:
+            csv_record[field].decode('utf-8')
+        except UnicodeError:
+            csv_record[field] = csv_record[field].decode('macroman')
+            print(' - Non UTF-8 characters detected, auto-converting using macroman encoding instead')
+    return csv_record
 
 def analyse_folder(folder_name):
     '''
@@ -399,7 +415,7 @@ def find_csv(source_directory):
 
 def main():
     # Create args object which holds the command line arguments.
-    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.12')
+    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.13')
     args = parse_args()
     # Declare appropriate XML namespaces.
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
@@ -432,6 +448,8 @@ def main():
                 # the folder name that is currently being analysed.
                 package_info = analyse_folder(full_folder_path)
                 if csv_record['Object Identifier'] == folder:
+                    # check for macroman characters
+                    csv_record = check_for_macroman(csv_record)
                     for values in csv_record:
                         # Check if any CSV values have unnecessary quotes and equals signs.
                         if '=' in csv_record[values]:
