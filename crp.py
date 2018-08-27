@@ -66,21 +66,22 @@ def analyse_folder(folder_name):
     file_info_list = []
     contents = sorted(os.listdir(folder_name))
     for files in contents:
-        if files.endswith('prsv.tif'):
-            dictionary = {}
-            dictionary[
-                'Preservation'
-            ] = os.path.join(folder_name, files)
-            dictionary[
-                'Access'
-            ] = os.path.join(folder_name, files.replace('prsv.tif', 'access.jpg'))
-            dictionary[
-                'access_checksum'
-            ] = dictionary['Access'] + '.md5'
-            dictionary[
-                'master_checksum'
-            ] = dictionary['Preservation'] + '.md5'
-            file_info_list.append(dictionary)
+        if not files.startswith('.'):
+            if files.endswith('prsv.tif'):
+                dictionary = {}
+                dictionary[
+                    'Preservation'
+                ] = os.path.join(folder_name, files)
+                dictionary[
+                    'Access'
+                ] = os.path.join(folder_name, files.replace('prsv.tif', 'access.jpg'))
+                dictionary[
+                    'access_checksum'
+                ] = dictionary['Access'] + '.md5'
+                dictionary[
+                    'master_checksum'
+                ] = dictionary['Preservation'] + '.md5'
+                file_info_list.append(dictionary)
     return file_info_list
 
 
@@ -415,7 +416,7 @@ def find_csv(source_directory):
 
 def main():
     # Create args object which holds the command line arguments.
-    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.13')
+    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.14')
     args = parse_args()
     # Declare appropriate XML namespaces.
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
