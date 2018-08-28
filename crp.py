@@ -416,7 +416,7 @@ def find_csv(source_directory):
 
 def main():
     # Create args object which holds the command line arguments.
-    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.14')
+    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.15')
     args = parse_args()
     # Declare appropriate XML namespaces.
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
@@ -482,10 +482,10 @@ def main():
                         )
                     # end of quick/dirty hack :(((
                     try:
-                        extent_total.text = csv_record['Total Number of Pages']
+                        extent_total.text = csv_record['Extent (total number of pages)']
                     except KeyError:
                         try:
-                            print('- "Total Number of Pages" value is missing from CSV')
+                            print('- "Extent (total number of pages" value is missing from CSV')
                             print('- Using "Total number of pages" instead')
                             extent_total.text = csv_record['Total number of pages']
                         except KeyError:
