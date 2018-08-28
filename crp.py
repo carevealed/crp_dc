@@ -269,7 +269,7 @@ def create_instantiations(AssetPart_element, instantation_counter, generation):
     counter = 1
     instantiation_element_list = []
     instantiations_element = create_assets_element(
-        index=99,
+        index=999999,
         parent=AssetPart_element,
         dc_element='instantations'
     )
@@ -416,7 +416,7 @@ def find_csv(source_directory):
 
 def main():
     # Create args object which holds the command line arguments.
-    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.15')
+    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.16')
     args = parse_args()
     # Declare appropriate XML namespaces.
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
