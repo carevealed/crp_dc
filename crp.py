@@ -82,6 +82,16 @@ def analyse_folder(folder_name):
                     'master_checksum'
                 ] = dictionary['Preservation'] + '.md5'
                 file_info_list.append(dictionary)
+            elif files.endswith('.pdf'):
+                dictionary = {}
+                dictionary[
+                    'Print'
+                ] = os.path.join(folder_name, files)
+                dictionary[
+                    'print_checksum'
+                ] = dictionary['Print'] + '.md5'
+                file_info_list.append(dictionary)
+
     return file_info_list
 
 
@@ -269,11 +279,14 @@ def create_instantiations(AssetPart_element, instantation_counter, generation):
     counter = 1
     instantiation_element_list = []
     instantiations_element = create_assets_element(
-        index=99,
+        index=999999,
         parent=AssetPart_element,
         dc_element='instantations'
     )
-    instantiations_element.attrib["relationship"] = 'Page %s' % str(instantation_counter)
+    if generation == 'Print':
+        instantiations_element.attrib["relationship"] = 'object'
+    else:
+        instantiations_element.attrib["relationship"] = 'Page %s' % str(instantation_counter)
     instantiation_element = create_assets_element(
         index=99,
         parent=instantiations_element,
@@ -322,7 +335,7 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
     instantiation_counter = 1
     for package in package_info:
         for sub_item in sorted(package.keys(), reverse=True):
-            if sub_item == 'Access' or sub_item == 'Preservation':
+            if sub_item == 'Access' or sub_item == 'Preservation' or sub_item == 'Print':
                 (digitalFileIdentifier,
                  creationDate,
                  fileExtension,
@@ -353,24 +366,28 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
                 standardAndFileWrapper.text = exiftool_json['MIMEType']
                 fileExtension.text = exiftool_json["FileTypeExtension"]
                 # Strings needed as INTs returned for some reason..
-                if len(str(exiftool_json['BitsPerSample'])) > 1:
-                    # Probably best to find some other way of getting
-                    # a bits per pixel value rather than this method.
-                    bits = str(exiftool_json['BitsPerSample']).split()
-                    bits = [int(i) for i in bits]
-                    bitDepth.text = str(sum(bits))
-                else:
-                    bitDepth.text = str(int(exiftool_json['BitsPerSample']) * int(exiftool_json["ColorComponents"]))
-                imageWidth.text = str(exiftool_json["ImageWidth"])
-                imageLength.text = str(exiftool_json["ImageHeight"])
-                xResolution.text = str(exiftool_json["XResolution"])
-                yResolution.text = str(exiftool_json["YResolution"])
+                if not fileExtension.text.lower() == 'pdf':
+                    if len(str(exiftool_json['BitsPerSample'])) > 1:
+                        # Probably best to find some other way of getting
+                        # a bits per pixel value rather than this method.
+                        bits = str(exiftool_json['BitsPerSample']).split()
+                        bits = [int(i) for i in bits]
+                        bitDepth.text = str(sum(bits))
+                    else:
+                        bitDepth.text = str(int(exiftool_json['BitsPerSample']) * int(exiftool_json["ColorComponents"]))
+                    imageWidth.text = str(exiftool_json["ImageWidth"])
+                    imageLength.text = str(exiftool_json["ImageHeight"])
+                    xResolution.text = str(exiftool_json["XResolution"])
+                    yResolution.text = str(exiftool_json["YResolution"])
                 if sub_item == 'Preservation':
                     derivedFrom.text = csv_record['Object Identifier']
                     md5.text = extract_checksum(package['master_checksum'])
                 elif sub_item == 'Access':
                     derivedFrom.text = os.path.basename(package['Preservation'])
                     md5.text = extract_checksum(package['access_checksum'])
+                elif sub_item == 'Print':
+                    derivedFrom.text = 'Bound from multiple tiff files'
+                    md5.text = extract_checksum(package['print_checksum'])
                 try:
                     samplesPerPixel.text = str(exiftool_json["ColorComponents"])
                 except KeyError:
@@ -416,7 +433,7 @@ def find_csv(source_directory):
 
 def main():
     # Create args object which holds the command line arguments.
-    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.15')
+    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.17')
     args = parse_args()
     # Declare appropriate XML namespaces.
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
