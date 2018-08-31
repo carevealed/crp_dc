@@ -140,7 +140,7 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     dc_description_issue.attrib["type"] = 'serial issue'
     dc_coverage.text = csv_record['Publication Location']
     dc_coverage.attrib["type"] = 'publication location'
-    return root_metadata_element, dublin_core_object, dc_creator
+    return root_metadata_element, dublin_core_object, dc_creator, dc_title
 
 
 def create_dc_element(index, parent, dc_element, dublin_core_namespace):
@@ -473,7 +473,7 @@ def main():
                         if '=' in csv_record[values]:
                             if csv_record[values][0:2] == '=\"':
                                 csv_record[values] = csv_record[values][2:][:-1]
-                    root_metadata_element, dublin_core_object, creator = add_DC_metadata(
+                    root_metadata_element, dublin_core_object, creator, title = add_DC_metadata(
                         folder,
                         dc_namespace,
                         xsi_namespace,
@@ -491,10 +491,17 @@ def main():
                     extent_dimensions, extent_total, medium = term_list
                     # Quick and dirty hack to move the created element below the creator element :(
                     creator_index = creator.getparent().index(creator)
+                    title_index = title.getparent().index(title)
                     created = create_dc_element(
                             index=creator_index + 1,
                             parent=root_metadata_element,
                             dc_element='created',
+                            dublin_core_namespace=dc_terms_namespace
+                        )
+                    alternative_title = create_dc_element(
+                            index=title_index + 1,
+                            parent=root_metadata_element,
+                            dc_element='alternative',
                             dublin_core_namespace=dc_terms_namespace
                         )
                     # end of quick/dirty hack :(((
@@ -513,6 +520,7 @@ def main():
                     extent_dimensions.text = csv_record['Extent (dimensions)']
                     # why is there an equals character and quotes in the CSV?
                     created.text = csv_record['Date Created']
+                    alternative_title.text = csv_record['Additional Title']
                     (objectIdentifier,
                      callNumber,
                      projectIdentifier,
