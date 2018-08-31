@@ -463,7 +463,7 @@ def find_csv(source_directory):
 
 def main():
     # Create args object which holds the command line arguments.
-    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.17')
+    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.18')
     args = parse_args()
     # Declare appropriate XML namespaces.
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
