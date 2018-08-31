@@ -67,30 +67,44 @@ def analyse_folder(folder_name):
     contents = sorted(os.listdir(folder_name))
     for files in contents:
         if not files.startswith('.'):
-            if files.endswith('prsv.tif'):
-                dictionary = {}
-                dictionary[
-                    'Preservation'
-                ] = os.path.join(folder_name, files)
-                dictionary[
-                    'Access'
-                ] = os.path.join(folder_name, files.replace('prsv.tif', 'access.jpg'))
-                dictionary[
-                    'access_checksum'
-                ] = dictionary['Access'] + '.md5'
-                dictionary[
-                    'master_checksum'
-                ] = dictionary['Preservation'] + '.md5'
-                file_info_list.append(dictionary)
-            elif files.endswith('.pdf'):
-                dictionary = {}
-                dictionary[
-                    'Print'
-                ] = os.path.join(folder_name, files)
-                dictionary[
-                    'print_checksum'
-                ] = dictionary['Print'] + '.md5'
-                file_info_list.append(dictionary)
+            if not files.endswith('_01_prsv.tif'):
+                if files.endswith('prsv.tif'):
+                    dictionary = {}
+                    dictionary[
+                        'Preservation'
+                    ] = os.path.join(folder_name, files)
+                    if os.path.isfile(os.path.join(folder_name, files.replace('prsv.tif', '01_prsv.tif'))):
+                        dictionary[
+                            'Preservation_01'
+                        ] = os.path.join(folder_name, files.replace('prsv.tif', '01_prsv.tif'))
+                        dictionary[
+                            'Preservation_01_md5'
+                        ] = os.path.join(folder_name, files.replace('prsv.tif', '01_prsv.tif') + '.md5')
+                        dictionary[
+                            'Access_01'
+                        ] = os.path.join(folder_name, files.replace('prsv.tif', '01_access.jpg'))
+                        dictionary[
+                            'Access_01_md5'
+                        ] = os.path.join(folder_name, files.replace('prsv.tif', '01_access.jpg') + '.md5')
+                    dictionary[
+                        'Access'
+                    ] = os.path.join(folder_name, files.replace('prsv.tif', 'access.jpg'))
+                    dictionary[
+                        'access_checksum'
+                    ] = dictionary['Access'] + '.md5'
+                    dictionary[
+                        'master_checksum'
+                    ] = dictionary['Preservation'] + '.md5'
+                    file_info_list.append(dictionary)
+                elif files.endswith('.pdf'):
+                    dictionary = {}
+                    dictionary[
+                        'Print'
+                    ] = os.path.join(folder_name, files)
+                    dictionary[
+                        'print_checksum'
+                    ] = dictionary['Print'] + '.md5'
+                    file_info_list.append(dictionary)
 
     return file_info_list
 
@@ -336,7 +350,14 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
     instantiation_counter = 1
     for package in package_info:
         for sub_item in sorted(package.keys(), reverse=True):
-            if sub_item == 'Access' or sub_item == 'Preservation' or sub_item == 'Print':
+
+            if sub_item == 'Access' or sub_item == 'Preservation' or sub_item == 'Print' or sub_item == 'Preservation_01' or sub_item == 'Access_01':
+                if sub_item == 'Preservation_01':
+                    instantation_generation = 'Preservation'
+                elif sub_item == 'Access_01':
+                    instantation_generation = 'Access'
+                else:
+                    instantation_generation = sub_item
                 (digitalFileIdentifier,
                  creationDate,
                  fileExtension,
@@ -355,7 +376,8 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
                  digitizerManufacturer,
                  digitizerModel,
                  imageProducer
-                ) = create_instantiations(AssetPart_element, instantiation_counter, generation=sub_item)
+                ) = create_instantiations(AssetPart_element, instantiation_counter, generation=instantation_generation)
+                print instantiation_counter, sub_item
                 md5.text = ''
                 exiftool_json = get_exiftool_json(package[sub_item])
                 digitalFileIdentifier.text = os.path.basename(package[sub_item])
@@ -389,6 +411,12 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
                 elif sub_item == 'Print':
                     derivedFrom.text = 'Bound from multiple tiff files'
                     md5.text = extract_checksum(package['print_checksum'])
+                elif sub_item == 'Preservation_01':
+                    derivedFrom.text = csv_record['Object Identifier']
+                    md5.text = extract_checksum(package['Preservation_01_md5'])
+                elif sub_item == 'Access_01':
+                    derivedFrom.text = os.path.basename(package['Preservation'])
+                    md5.text = extract_checksum(package['Access_01_md5'])
                 try:
                     samplesPerPixel.text = str(exiftool_json["ColorComponents"])
                 except KeyError:
