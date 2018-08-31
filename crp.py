@@ -488,7 +488,7 @@ def main():
                             dublin_core_namespace=dc_terms_namespace
                         )
                         term_list.append(dc_term)
-                    extent_total, extent_dimensions, medium = term_list
+                    extent_dimensions, extent_total, medium = term_list
                     # Quick and dirty hack to move the created element below the creator element :(
                     creator_index = creator.getparent().index(creator)
                     created = create_dc_element(
