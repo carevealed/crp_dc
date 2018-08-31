@@ -67,30 +67,44 @@ def analyse_folder(folder_name):
     contents = sorted(os.listdir(folder_name))
     for files in contents:
         if not files.startswith('.'):
-            if files.endswith('prsv.tif'):
-                dictionary = {}
-                dictionary[
-                    'Preservation'
-                ] = os.path.join(folder_name, files)
-                dictionary[
-                    'Access'
-                ] = os.path.join(folder_name, files.replace('prsv.tif', 'access.jpg'))
-                dictionary[
-                    'access_checksum'
-                ] = dictionary['Access'] + '.md5'
-                dictionary[
-                    'master_checksum'
-                ] = dictionary['Preservation'] + '.md5'
-                file_info_list.append(dictionary)
-            elif files.endswith('.pdf'):
-                dictionary = {}
-                dictionary[
-                    'Print'
-                ] = os.path.join(folder_name, files)
-                dictionary[
-                    'print_checksum'
-                ] = dictionary['Print'] + '.md5'
-                file_info_list.append(dictionary)
+            if not files.endswith('_01_prsv.tif'):
+                if files.endswith('prsv.tif'):
+                    dictionary = {}
+                    dictionary[
+                        'Preservation'
+                    ] = os.path.join(folder_name, files)
+                    if os.path.isfile(os.path.join(folder_name, files.replace('prsv.tif', '01_prsv.tif'))):
+                        dictionary[
+                            'Preservation_01'
+                        ] = os.path.join(folder_name, files.replace('prsv.tif', '01_prsv.tif'))
+                        dictionary[
+                            'Preservation_01_md5'
+                        ] = os.path.join(folder_name, files.replace('prsv.tif', '01_prsv.tif') + '.md5')
+                        dictionary[
+                            'Access_01'
+                        ] = os.path.join(folder_name, files.replace('prsv.tif', '01_access.jpg'))
+                        dictionary[
+                            'Access_01_md5'
+                        ] = os.path.join(folder_name, files.replace('prsv.tif', '01_access.jpg') + '.md5')
+                    dictionary[
+                        'Access'
+                    ] = os.path.join(folder_name, files.replace('prsv.tif', 'access.jpg'))
+                    dictionary[
+                        'access_checksum'
+                    ] = dictionary['Access'] + '.md5'
+                    dictionary[
+                        'master_checksum'
+                    ] = dictionary['Preservation'] + '.md5'
+                    file_info_list.append(dictionary)
+                elif files.endswith('.pdf'):
+                    dictionary = {}
+                    dictionary[
+                        'Print'
+                    ] = os.path.join(folder_name, files)
+                    dictionary[
+                        'print_checksum'
+                    ] = dictionary['Print'] + '.md5'
+                    file_info_list.append(dictionary)
 
     return file_info_list
 
@@ -140,7 +154,7 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     dc_description_issue.attrib["type"] = 'serial issue'
     dc_coverage.text = csv_record['Publication Location']
     dc_coverage.attrib["type"] = 'publication location'
-    return root_metadata_element, dublin_core_object, dc_creator
+    return root_metadata_element, dublin_core_object, dc_creator, dc_title
 
 
 def create_dc_element(index, parent, dc_element, dublin_core_namespace):
@@ -324,7 +338,8 @@ def create_instantiations(AssetPart_element, instantation_counter, generation):
             dc_element=elements,
         )
         instantiation_element_list.append(element)
-        counter += 1
+        if not generation == 'Print':
+            counter += 1
     return instantiation_element_list
 
 
@@ -335,7 +350,14 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
     instantiation_counter = 1
     for package in package_info:
         for sub_item in sorted(package.keys(), reverse=True):
-            if sub_item == 'Access' or sub_item == 'Preservation' or sub_item == 'Print':
+
+            if sub_item == 'Access' or sub_item == 'Preservation' or sub_item == 'Print' or sub_item == 'Preservation_01' or sub_item == 'Access_01':
+                if sub_item == 'Preservation_01':
+                    instantation_generation = 'Preservation'
+                elif sub_item == 'Access_01':
+                    instantation_generation = 'Access'
+                else:
+                    instantation_generation = sub_item
                 (digitalFileIdentifier,
                  creationDate,
                  fileExtension,
@@ -354,7 +376,8 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
                  digitizerManufacturer,
                  digitizerModel,
                  imageProducer
-                ) = create_instantiations(AssetPart_element, instantiation_counter, generation=sub_item)
+                ) = create_instantiations(AssetPart_element, instantiation_counter, generation=instantation_generation)
+                print instantiation_counter, sub_item
                 md5.text = ''
                 exiftool_json = get_exiftool_json(package[sub_item])
                 digitalFileIdentifier.text = os.path.basename(package[sub_item])
@@ -388,6 +411,12 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
                 elif sub_item == 'Print':
                     derivedFrom.text = 'Bound from multiple tiff files'
                     md5.text = extract_checksum(package['print_checksum'])
+                elif sub_item == 'Preservation_01':
+                    derivedFrom.text = csv_record['Object Identifier']
+                    md5.text = extract_checksum(package['Preservation_01_md5'])
+                elif sub_item == 'Access_01':
+                    derivedFrom.text = os.path.basename(package['Preservation'])
+                    md5.text = extract_checksum(package['Access_01_md5'])
                 try:
                     samplesPerPixel.text = str(exiftool_json["ColorComponents"])
                 except KeyError:
@@ -408,7 +437,8 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
                     digitizerModel.text = str(exiftool_json["Model"])
                 except KeyError:
                     digitizerModel.getparent().remove(digitizerModel)
-        instantiation_counter += 1
+        if not sub_item == 'Print':
+            instantiation_counter += 1
 
 
 def find_csv(source_directory):
@@ -433,7 +463,7 @@ def find_csv(source_directory):
 
 def main():
     # Create args object which holds the command line arguments.
-    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.17')
+    print('\n- California Revealed Project Dublin Core Metadata Generator - v0.18')
     args = parse_args()
     # Declare appropriate XML namespaces.
     dc_namespace = 'http://purl.org/dc/elements/1.1/'
@@ -473,7 +503,7 @@ def main():
                         if '=' in csv_record[values]:
                             if csv_record[values][0:2] == '=\"':
                                 csv_record[values] = csv_record[values][2:][:-1]
-                    root_metadata_element, dublin_core_object, creator = add_DC_metadata(
+                    root_metadata_element, dublin_core_object, creator, title = add_DC_metadata(
                         folder,
                         dc_namespace,
                         xsi_namespace,
@@ -488,13 +518,20 @@ def main():
                             dublin_core_namespace=dc_terms_namespace
                         )
                         term_list.append(dc_term)
-                    extent_total, extent_dimensions, medium = term_list
+                    extent_dimensions, extent_total, medium = term_list
                     # Quick and dirty hack to move the created element below the creator element :(
                     creator_index = creator.getparent().index(creator)
+                    title_index = title.getparent().index(title)
                     created = create_dc_element(
                             index=creator_index + 1,
                             parent=root_metadata_element,
                             dc_element='created',
+                            dublin_core_namespace=dc_terms_namespace
+                        )
+                    alternative_title = create_dc_element(
+                            index=title_index + 1,
+                            parent=root_metadata_element,
+                            dc_element='alternative',
                             dublin_core_namespace=dc_terms_namespace
                         )
                     # end of quick/dirty hack :(((
@@ -513,6 +550,7 @@ def main():
                     extent_dimensions.text = csv_record['Extent (dimensions)']
                     # why is there an equals character and quotes in the CSV?
                     created.text = csv_record['Date Created']
+                    alternative_title.text = csv_record['Additional Title']
                     (objectIdentifier,
                      callNumber,
                      projectIdentifier,
