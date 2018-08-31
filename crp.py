@@ -324,7 +324,8 @@ def create_instantiations(AssetPart_element, instantation_counter, generation):
             dc_element=elements,
         )
         instantiation_element_list.append(element)
-        counter += 1
+        if not generation == 'Print':
+            counter += 1
     return instantiation_element_list
 
 
@@ -408,7 +409,8 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
                     digitizerModel.text = str(exiftool_json["Model"])
                 except KeyError:
                     digitizerModel.getparent().remove(digitizerModel)
-        instantiation_counter += 1
+        if not sub_item == 'Print':
+            instantiation_counter += 1
 
 
 def find_csv(source_directory):
