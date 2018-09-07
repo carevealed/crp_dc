@@ -115,13 +115,22 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     # Sets up a bunch of empty Dublin Core XML elements.
     root_metadata_element = dublin_core_object.getroot()
     (
+        dc_identifier_object_id,
+        dc_identifier_call_number,
+        dc_identifier_projectID,
         dc_identifier,
+        dc_identifier_cdnp,
         dc_crp_provenance,
         dc_provenance,
         dc_provenance_url,
         dc_type,
         dc_format,
         dc_title,
+        dc_title_series,
+        dc_description_volume,
+        dc_description_issue,
+        description,
+        vendorQualityControlNotes,
         dc_creator,
         dc_contributor,
         dc_date,
@@ -134,10 +143,6 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
         dc_rights_country,
         dc_publisher,
         dc_language,
-        dc_identifier_cdnp,
-        dc_title_series,
-        dc_description_volume,
-        dc_description_issue,
         dc_description_additional_descriptive,
         dc_description_additional_technical,
         dc_relation_collection_guide_title,
@@ -179,6 +184,12 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     dc_title.attrib["type"] = 'main'
     dc_creator.text = csv_record['Creator']
     dc_contributor.text = csv_record['Contributor']
+    dc_identifier_object_id.attrib["type"] = 'objectIdentifier'
+    dc_identifier_call_number.attrib["type"] = 'callNumber'
+    dc_identifier_projectID.attrib["type"] = 'projectIdentifier'
+    dc_identifier_object_id.text = csv_record['Object Identifier']
+    dc_identifier_call_number.text = csv_record['Call Number']
+    dc_identifier_projectID.text = csv_record['Project Identifier']
     dc_identifier.text = csv_record['Internet Archive URL']
     dc_identifier.attrib["type"] =  'IAurl'
     dc_type.text = csv_record['Type']
@@ -190,6 +201,10 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     dc_identifier_cdnp.attrib["type"] = 'CDNPIdentifier'
     dc_description_volume.text = csv_record['Serial Volume']
     dc_description_volume.attrib["type"] = 'serialVolume'
+    description.text = csv_record['Description or Content Summary']
+    description.attrib["type"] = 'contentSummary'
+    vendorQualityControlNotes.text = csv_record['Quality Control Notes']
+    vendorQualityControlNotes.attrib["type"] = 'vendorQualityControlNotes'
     dc_title_series.attrib["type"] = 'series'
     dc_title_series.text = csv_record['Series Title']
     dc_description_issue.text = csv_record['Serial Issue']
@@ -214,7 +229,7 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     dc_coverage_temporal.attrib["type"] = 'temporal'
     dc_relation.text = csv_record['Relationship']
     dc_relation_type.text = csv_record['Relationship Type']
-    return root_metadata_element, dublin_core_object, dc_creator, dc_title
+    return root_metadata_element, dublin_core_object, dc_contributor, dc_title
 
 
 def create_dc_element(index, parent, dc_element, dublin_core_namespace):
@@ -248,8 +263,6 @@ def add_asset_elements(root_metadata_element):
             'identifier',
             'identifier',
             'type',
-            'description',
-            'description'
     ]:
         '''
         am = create_assets_element(
@@ -304,12 +317,21 @@ def add_dc_elements(root_metadata_element, dc_namespace):
     element_list = []
     for elements in [
             'identifier',
+            'identifier',
+            'identifier',
+            'identifier',
+            'identifier',
             'provenance',
             'provenance',
             'provenance',
             'type',
             'format',
             'title',
+            'title',
+            'description',
+            'description',
+            'description',
+            'description',
             'creator',
             'contributor',
             'date',
@@ -322,10 +344,6 @@ def add_dc_elements(root_metadata_element, dc_namespace):
             'description',
             'publisher',
             'language',
-            'identifier',
-            'title',
-            'description',
-            'description',
             'description',
             'description',
             'relation',
@@ -590,7 +608,7 @@ def main():
                         if '=' in csv_record[values]:
                             if csv_record[values][0:2] == '=\"':
                                 csv_record[values] = csv_record[values][2:][:-1]
-                    root_metadata_element, dublin_core_object, creator, title = add_DC_metadata(
+                    root_metadata_element, dublin_core_object, contributor, title = add_DC_metadata(
                         folder,
                         dc_namespace,
                         xsi_namespace,
@@ -607,10 +625,10 @@ def main():
                         term_list.append(dc_term)
                     extent_dimensions, extent_total, medium = term_list
                     # Quick and dirty hack to move the created element below the creator element :(
-                    creator_index = creator.getparent().index(creator)
+                    contributor_index = contributor.getparent().index(contributor)
                     title_index = title.getparent().index(title)
                     created = create_dc_element(
-                            index=creator_index + 1,
+                            index=contributor_index + 1,
                             parent=root_metadata_element,
                             dc_element='date',
                             dublin_core_namespace=dc_namespace
@@ -643,9 +661,7 @@ def main():
                     (objectIdentifier,
                      callNumber,
                      projectIdentifier,
-                     assetType,
-                     description,
-                     vendorQualityControlNotes
+                     assetType
                     ), AssetPart_element = add_asset_elements(root_metadata_element)
                     callNumber.text = csv_record['Call Number']
                     callNumber.attrib["type"] = 'callNumber'
@@ -655,10 +671,6 @@ def main():
                     objectIdentifier.attrib["type"] = 'objectIdentifier'
                     assetType.text = csv_record['Asset Type']
                     assetType.attrib["type"] = 'assetType'
-                    description.text = csv_record['Description or Content Summary']
-                    description.attrib["type"] = 'contentSummary'
-                    vendorQualityControlNotes.text = csv_record['Quality Control Notes']
-                    vendorQualityControlNotes.attrib["type"] = 'vendorQualityControlNotes'
                     techncial_metadata(package_info, AssetPart_element, csv_record)
                     # This will delete any collapsed, empty elements, such as </description>.
                     # it will not delete an uncollapsed empty element, such as <description></decription?
