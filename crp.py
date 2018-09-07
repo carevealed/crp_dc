@@ -118,42 +118,102 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
         dc_identifier,
         dc_crp_provenance,
         dc_provenance,
+        dc_provenance_url,
         dc_type,
         dc_format,
         dc_title,
         dc_creator,
+        dc_contributor,
         dc_date,
         dc_rights,
+        dc_rights_holder,
+        dc_rights_holderinfo,
+        dc_rights_holder_date,
+        dc_rights_holder_notice,
+        dc_rights_institutional_rights,
         dc_rights_country,
+        dc_publisher,
         dc_language,
         dc_identifier_cdnp,
+        dc_title_series,
         dc_description_volume,
         dc_description_issue,
-        dc_coverage
+        dc_description_additional_descriptive,
+        dc_description_additional_technical,
+        dc_relation_collection_guide_title,
+        dc_relation_collection_guide_url,
+        dc_subject_topic,
+        dc_subject_entity,
+        dc_coverage,
+        dc_coverage_spatial,
+        dc_coverage_temporal,
+        dc_relation,
+        dc_relation_type
     ) = add_dc_elements(root_metadata_element, dc_namespace)
     # Populate the empty elements with the corresponding CSV field.
     dc_identifier.attrib["{%s}type" % xsi_namespace] = "dcterms:URI"
     dc_rights_country.attrib["type"] = 'Country of Creation'
     dc_rights.text = csv_record['Copyright Statement']
+    dc_rights.attrib["type"] = 'copyrightStatement'
+    dc_rights_holder.text = csv_record['Copyright Holder']
+    dc_rights_holder.attrib["type"] = 'copyrightHolder'
+    dc_rights_holderinfo.text = csv_record['Copyright Holder Info']
+    dc_rights_holderinfo.attrib["type"] = 'copyrightHolderInfo'
+    dc_rights_holder_date.text = csv_record['Copyright Date']
+    dc_rights_holder_date.attrib["type"] = 'copyrightDate'
+    dc_rights_holder_notice.text = csv_record['Copyright Notice']
+    dc_rights_holder_notice.attrib["type"] = 'copyrightNotice'
+    dc_rights_institutional_rights.text = csv_record['Institutional Rights Statement (URL)']
+    dc_rights_institutional_rights.attrib["type"] = 'copyrightInstitution'
+    # this is now in the description section, not rights.
     dc_rights_country.text = csv_record['Country of Creation']
+    dc_rights_country.attrib["type"] = 'countryCreated'
     dc_crp_provenance.text = 'California Revealed'
+    dc_crp_provenance.attrib["type"] = 'projectNote'
     dc_provenance.text = csv_record['Institution']
+    dc_provenance.attrib["type"] = 'institution'
+    dc_provenance_url.text = csv_record['Institution URL']
+    dc_provenance_url.attrib["type"] = 'institutionURL'
     dc_format.text = csv_record['Generation']
     dc_title.text = csv_record['Main or Supplied Title']
+    dc_title.attrib["type"] = 'main'
     dc_creator.text = csv_record['Creator']
+    dc_contributor.text = csv_record['Contributor']
     dc_identifier.text = csv_record['Internet Archive URL']
+    dc_identifier.attrib["type"] =  'IAurl'
     dc_type.text = csv_record['Type']
-    dc_date.attrib["type"] = 'Published'
+    dc_date.attrib["type"] = 'dcterms:published'
     dc_date.text = csv_record['Date Published']
+    dc_publisher.text = csv_record['Publisher']
     dc_language.text = csv_record['Language']
     dc_identifier_cdnp.text = csv_record['CDNP Identifier']
-    dc_identifier_cdnp.attrib["type"] = 'CDNP identifier'
+    dc_identifier_cdnp.attrib["type"] = 'CDNPIdentifier'
     dc_description_volume.text = csv_record['Serial Volume']
-    dc_description_volume.attrib["type"] = 'serial volume'
+    dc_description_volume.attrib["type"] = 'serialVolume'
+    dc_title_series.attrib["type"] = 'series'
+    dc_title_series.text = csv_record['Series Title']
     dc_description_issue.text = csv_record['Serial Issue']
-    dc_description_issue.attrib["type"] = 'serial issue'
+    dc_description_issue.attrib["type"] = 'serialIssue'
+    dc_description_additional_descriptive.text = csv_record['Additional Descriptive Notes for Overall Work']
+    dc_description_additional_descriptive.attrib["type"] = 'additionalDescriptive'
+    dc_description_additional_technical.text = csv_record['Additional Technical Notes for Overall Work']
+    dc_description_additional_technical.attrib["type"] = 'additionalTechnical'
+    dc_relation_collection_guide_title.text = csv_record['Collection Guide Title']
+    dc_relation_collection_guide_title.attrib["type"] = 'isPartof'
+    dc_relation_collection_guide_url.text = csv_record['Collection Guide URL']
+    dc_relation_collection_guide_url.attrib["type"] = 'isPartof'
+    dc_subject_topic.text = csv_record['Subject Topic']
+    dc_subject_topic.attrib["type"] = 'topic'
+    dc_subject_entity.text = csv_record['Subject Entity']
+    dc_subject_entity.attrib["type"] = 'entity'
     dc_coverage.text = csv_record['Publication Location']
-    dc_coverage.attrib["type"] = 'publication location'
+    dc_coverage.attrib["type"] = 'publicationLocation'
+    dc_coverage_spatial.text = csv_record['Spatial Coverage']
+    dc_coverage_spatial.attrib["type"] = 'spatial'
+    dc_coverage_temporal.text = csv_record['Temporal Coverage']
+    dc_coverage_temporal.attrib["type"] = 'temporal'
+    dc_relation.text = csv_record['Relationship']
+    dc_relation_type.text = csv_record['Relationship Type']
     return root_metadata_element, dublin_core_object, dc_creator, dc_title
 
 
@@ -176,6 +236,7 @@ def add_asset_elements(root_metadata_element):
     '''
     Adds the Asset level elements.
     '''
+    dc_namespace = 'http://purl.org/dc/elements/1.1/'
     asset_element_list = []
     Assets_element = create_assets_element(
         index=99,
@@ -183,17 +244,25 @@ def add_asset_elements(root_metadata_element):
         dc_element='Assets'
     )
     for asset_level_elements in [
-            'objectIdentifier',
-            'callNumber',
-            'projectIdentifier',
-            'assetType',
+            'identifier',
+            'identifier',
+            'identifier',
+            'type',
             'description',
-            'vendorQualityControlNotes'
+            'description'
     ]:
+        '''
         am = create_assets_element(
             index=99,
             parent=Assets_element,
             dc_element=asset_level_elements
+        )
+        '''
+        am = create_dc_element(
+            index=99,
+            parent=Assets_element,
+            dc_element=asset_level_elements,
+            dublin_core_namespace=dc_namespace
         )
         asset_element_list.append(am)
     AssetPart_element = create_assets_element(
@@ -237,18 +306,37 @@ def add_dc_elements(root_metadata_element, dc_namespace):
             'identifier',
             'provenance',
             'provenance',
+            'provenance',
             'type',
             'format',
             'title',
             'creator',
+            'contributor',
             'date',
             'rights',
             'rights',
+            'rights',
+            'rights',
+            'rights',
+            'rights',
+            'description',
+            'publisher',
             'language',
             'identifier',
+            'title',
             'description',
             'description',
-            'coverage'
+            'description',
+            'description',
+            'relation',
+            'relation',
+            'subject',
+            'subject',
+            'coverage',
+            'coverage',
+            'coverage',
+            'relation',
+            'relation'
         ]:
         element = create_dc_element(
             index=counter,
@@ -377,7 +465,6 @@ def techncial_metadata(package_info, AssetPart_element, csv_record):
                  digitizerModel,
                  imageProducer
                 ) = create_instantiations(AssetPart_element, instantiation_counter, generation=instantation_generation)
-                print instantiation_counter, sub_item
                 md5.text = ''
                 exiftool_json = get_exiftool_json(package[sub_item])
                 digitalFileIdentifier.text = os.path.basename(package[sub_item])
@@ -525,14 +612,15 @@ def main():
                     created = create_dc_element(
                             index=creator_index + 1,
                             parent=root_metadata_element,
-                            dc_element='created',
-                            dublin_core_namespace=dc_terms_namespace
+                            dc_element='date',
+                            dublin_core_namespace=dc_namespace
                         )
+                    created.attrib["type"] = 'dcterms:created'
                     alternative_title = create_dc_element(
                             index=title_index + 1,
                             parent=root_metadata_element,
-                            dc_element='alternative',
-                            dublin_core_namespace=dc_terms_namespace
+                            dc_element='title',
+                            dublin_core_namespace=dc_namespace
                         )
                     # end of quick/dirty hack :(((
                     try:
@@ -550,6 +638,7 @@ def main():
                     extent_dimensions.text = csv_record['Extent (dimensions)']
                     # why is there an equals character and quotes in the CSV?
                     created.text = csv_record['Date Created']
+                    alternative_title.attrib["type"] = 'dcterms:alternative'
                     alternative_title.text = csv_record['Additional Title']
                     (objectIdentifier,
                      callNumber,
@@ -559,11 +648,17 @@ def main():
                      vendorQualityControlNotes
                     ), AssetPart_element = add_asset_elements(root_metadata_element)
                     callNumber.text = csv_record['Call Number']
+                    callNumber.attrib["type"] = 'callNumber'
                     projectIdentifier.text = csv_record['Project Identifier']
+                    projectIdentifier.attrib["type"] = 'projectIdentifier'
                     objectIdentifier.text = csv_record['Object Identifier']
+                    objectIdentifier.attrib["type"] = 'objectIdentifier'
                     assetType.text = csv_record['Asset Type']
+                    assetType.attrib["type"] = 'assetType'
                     description.text = csv_record['Description or Content Summary']
+                    description.attrib["type"] = 'contentSummary'
                     vendorQualityControlNotes.text = csv_record['Quality Control Notes']
+                    vendorQualityControlNotes.attrib["type"] = 'vendorQualityControlNotes'
                     techncial_metadata(package_info, AssetPart_element, csv_record)
                     # This will delete any collapsed, empty elements, such as </description>.
                     # it will not delete an uncollapsed empty element, such as <description></decription?
