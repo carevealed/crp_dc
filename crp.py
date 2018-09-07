@@ -129,6 +129,9 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
         dc_title_series,
         dc_description_volume,
         dc_description_issue,
+        dc_medium,
+        dc_extent_total,
+        dc_extent_size,
         description,
         vendorQualityControlNotes,
         dc_creator,
@@ -209,6 +212,22 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
     dc_title_series.text = csv_record['Series Title']
     dc_description_issue.text = csv_record['Serial Issue']
     dc_description_issue.attrib["type"] = 'serialIssue'
+    try:
+        dc_extent_total.text = csv_record['Extent (total number of pages)']
+    except KeyError:
+        try:
+            print('- "Extent (total number of pages" value is missing from CSV')
+            print('- Using "Total number of pages" instead')
+            dc_extent_total.text = csv_record['Total number of pages']
+        except KeyError:
+            print('- "Total Number of Pages" value is missing from CSV')
+            print('- Using "Total Number of Reels or Tapes" instead')
+            dc_extent_total.text = csv_record['Total Number of Reels or Tapes']
+    dc_medium.text = csv_record['Format']
+    dc_extent_size.text = csv_record['Extent (dimensions)']
+    dc_extent_total.attrib["type"] = 'dcterms:extent'
+    dc_medium.attrib["type"] = 'dcterms:medium'
+    dc_extent_size.attrib["type"] = 'dcterms:extent'
     dc_description_additional_descriptive.text = csv_record['Additional Descriptive Notes for Overall Work']
     dc_description_additional_descriptive.attrib["type"] = 'additionalDescriptive'
     dc_description_additional_technical.text = csv_record['Additional Technical Notes for Overall Work']
@@ -330,6 +349,9 @@ def add_dc_elements(root_metadata_element, dc_namespace):
             'title',
             'description',
             'description',
+            'format',
+            'format',
+            'format',
             'description',
             'description',
             'creator',
@@ -614,16 +636,6 @@ def main():
                         xsi_namespace,
                         csv_record
                     )
-                    term_list = []
-                    for term in ['extent', 'extent', 'medium']:
-                        dc_term = create_dc_element(
-                            index=5,
-                            parent=root_metadata_element,
-                            dc_element=term,
-                            dublin_core_namespace=dc_terms_namespace
-                        )
-                        term_list.append(dc_term)
-                    extent_dimensions, extent_total, medium = term_list
                     # Quick and dirty hack to move the created element below the creator element :(
                     contributor_index = contributor.getparent().index(contributor)
                     title_index = title.getparent().index(title)
@@ -641,20 +653,7 @@ def main():
                             dublin_core_namespace=dc_namespace
                         )
                     # end of quick/dirty hack :(((
-                    try:
-                        extent_total.text = csv_record['Extent (total number of pages)']
-                    except KeyError:
-                        try:
-                            print('- "Extent (total number of pages" value is missing from CSV')
-                            print('- Using "Total number of pages" instead')
-                            extent_total.text = csv_record['Total number of pages']
-                        except KeyError:
-                            print('- "Total Number of Pages" value is missing from CSV')
-                            print('- Using "Total Number of Reels or Tapes" instead')
-                            extent_total.text = csv_record['Total Number of Reels or Tapes']
-                    medium.text = csv_record['Format']
-                    extent_dimensions.text = csv_record['Extent (dimensions)']
-                    # why is there an equals character and quotes in the CSV?
+                                       # why is there an equals character and quotes in the CSV?
                     created.text = csv_record['Date Created']
                     alternative_title.attrib["type"] = 'dcterms:alternative'
                     alternative_title.text = csv_record['Additional Title']
