@@ -670,7 +670,10 @@ def main():
                     assetType.attrib["type"] = 'assetType'
                     techncial_metadata(package_info, AssetPart_element, csv_record)
                     # This will delete any collapsed, empty elements, such as </description>.
-                    # it will not delete an uncollapsed empty element, such as <description></decription?
+                    # all empty elements should now hopefully be deleted
+                    for element in root_metadata_element.xpath(".//*"):
+                        if element.text == '':
+                            element.getparent().remove(element)
                     for element in root_metadata_element.xpath(".//*[not(node())]"):
                         element.getparent().remove(element)
                     with open(os.path.join(full_folder_path, csv_record['Object Identifier']) + '_metadata.xml', 'w') as outFile:
