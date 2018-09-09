@@ -133,7 +133,6 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
         dc_extent_total,
         dc_extent_size,
         description,
-        vendorQualityControlNotes,
         dc_creator,
         dc_contributor,
         dc_date,
@@ -155,7 +154,8 @@ def add_DC_metadata(folder, dc_namespace, xsi_namespace, csv_record):
         dc_coverage,
         dc_coverage_spatial,
         dc_coverage_temporal,
-        dc_relation
+        dc_relation,
+        vendorQualityControlNotes
     ) = add_dc_elements(root_metadata_element, dc_namespace)
     # Populate the empty elements with the corresponding CSV field.
     dc_identifier.attrib["{%s}type" % xsi_namespace] = "dcterms:URI"
@@ -352,7 +352,6 @@ def add_dc_elements(root_metadata_element, dc_namespace):
             'format',
             'format',
             'description',
-            'description',
             'creator',
             'contributor',
             'date',
@@ -375,6 +374,7 @@ def add_dc_elements(root_metadata_element, dc_namespace):
             'coverage',
             'coverage',
             'relation',
+            'description'
         ]:
         element = create_dc_element(
             index=counter,
