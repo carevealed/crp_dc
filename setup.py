@@ -1,11 +1,11 @@
 from setuptools import setup
 setup(
-    author='Kieran O\'Leary for California Revealed Project',
-    author_email='kieran.o.leary@gmail.com',
-    description="Expresses descriptive and technical metadata in XML",
-    scripts=['crp.py'],
+    author='Brian Thomas for California Revealed Project',
+    author_email='brian.the.archivist@gmail.com',
+    description='Converts standardized spreadsheet data and file characterization into sidecar xml at one per folder',
+    scripts=['metadata_processor.py', 'crp2.py'],
     license='MIT',
-    install_requires=['lxml'],
-    name='crp_dc',
-    version='0.18'
+    install_requires=['pandas', 'openpyxl', 'pyexiftool'],
+    name='crp2.py',
+    version='0.1'
 )
