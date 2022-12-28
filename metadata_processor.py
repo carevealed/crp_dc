@@ -812,7 +812,7 @@ for row in df.itertuples():
                     bound_from = ['multiple','files']
                 derived.text = f"Bound from {bound_from[0]} {ext_list[0]} {bound_from[1]}"
             general_log.write(f"{access_file} processed\n")
-    metadataFile = f"{directory}/{valuables['obj_object_identifier'][-1]}_metadata2.xml"
+    metadataFile = f"{directory}/{valuables['obj_object_identifier'][-1]}_metadata.xml"
     if os.path.isdir(directory):
         with open(metadataFile, "w", encoding='UTF-8') as output:
             output.write(prettify(metadata))
