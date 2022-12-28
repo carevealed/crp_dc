@@ -41,7 +41,8 @@ There are two methods for installation:
 2. Use the setup file (easy method):
    * Follow the directions under [Software requirements](#Software-requirements) for installing python3 and exiftool
    * Download the entire package from GitHub and extract the ZIP file downloaded
-   * While in the folder with the extracted files, run `python install .`. This should install the software and all dependencies.
+   * While in the folder with the extracted files, open a terminal window and type `python3 install .`. This should install the software and all dependencies.
+   * If the above does not work, you can also try opening a terminal window and running the setup script with `python3 setup.py install`. 
 ## Updates
 Updates differ between installation methods
 1. If you followed installation option 1:
