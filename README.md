@@ -35,14 +35,15 @@ Born-Digital text files are handled as follows:
 * Where only PDF files exist in a folder, there should be a _prsv and an _access PDF file.
 
 ## Installation
-There are two methods for installation:
+The best method for installation is to:
 1. Follow the steps in order for [Software requirements](#Software-requirements), then
-   * Download the entire package from GitHub and extract the ZIP file downloaded. 
-2. Use the setup file (easy method):
-   * Follow the directions under [Software requirements](#Software-requirements) for installing python3 and exiftool
-   * Download the entire package from GitHub and extract the ZIP file downloaded
-   * While in the folder with the extracted files, open a terminal window and type `python3 install .`. This should install the software and all dependencies.
-   * If the above does not work, you can also try opening a terminal window and running the setup script with `python3 setup.py install`. 
+2. Download the entire package from GitHub and extract the ZIP file downloaded.
+
+Alternately, you can use the setup file method. However, this is known to cause installation issues with some systems and is not the preferred method.
+* Follow the directions under [Software requirements](#Software-requirements) for installing python3 and exiftool
+* Download the entire package from GitHub and extract the ZIP file downloaded
+* While in the folder with the extracted files, open a terminal window and type `python3 install .`. This should install the software and all dependencies.
+  * If the above does not work, you can also try opening a terminal window and running the setup script with `python3 setup.py install`. 
 ## Updates
 Updates differ between installation methods
 1. If you followed installation option 1:
