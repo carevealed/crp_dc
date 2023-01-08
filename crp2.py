@@ -663,9 +663,10 @@ def main():
                     filetype = exif_dict['File:MIMEType'].split("/")[0]
                     # use file type to determine what method to use
                     if "EXIF:PageNumber" in exif_dict:
-                        access_files.append(filename)
-                        ext_list.add(filename.split(".")[-1].lower())
-                        multi_page += 1
+                        if exif_dict['EXIF:PageNumber'] != "0 0":
+                            access_files.append(filename)
+                            ext_list.add(filename.split(".")[-1].lower())
+                            multi_page += 1
                     elif filename2.endswith("_prsv") and filetype == 'image':
                         preservation_files.append(filename)
                     elif filename2.endswith("_mezz") and filetype == 'image':
