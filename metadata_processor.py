@@ -636,7 +636,7 @@ for row in df.itertuples():
                 exif_dict = exif_dict[0]
                 filetype = exif_dict['File:MIMEType'].split("/")[0]
                 # use file type to determine what method to use
-                if "EXIF:PageNumber" in exif_dict:
+                if "EXIF:PageNumber" in exif_dict and exif_dict['EXIF:PageNumber'] != "0 0":
                     access_files.append(filename)
                     ext_list.add(filename.split(".")[-1].lower())
                     multi_page += 1
