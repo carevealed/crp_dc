@@ -589,11 +589,20 @@ def main():
                     something = valuables[key][0]
                     if ";" in valuables[key][-1]:
                         split_list = valuables[key][-1].split(";")
-                        for item in split_list:
-                            thingy = ET.SubElement(metadata, valuables[key][0])
-                            thingy.text = item
-                            if export_type == 'dc' and key in dc_attrib_dict:
-                                thingy.attrib['type'] = dc_attrib_dict[key]
+                        if ";" in valuables[key][0]:
+                            prefix = valuables[key][0].split(":")[0]
+                            tag_list = valuables[key][0].split(":")[1].split(";")
+                            tag_count = 0
+                            for item in tag_list:
+                                thingy = ET.SubElement(metadata, f'{prefix}:{item}')
+                                thingy.text = split_list[tag_count]
+                                tag_count += 1
+                        else:
+                            for item in split_list:
+                                thingy = ET.SubElement(metadata, valuables[key][0])
+                                thingy.text = item
+                                if export_type == 'dc' and key in dc_attrib_dict:
+                                    thingy.attrib['type'] = dc_attrib_dict[key]
                     else:
                         thingy = ET.SubElement(metadata, valuables[key][0])
                         thingy.text = valuables[key][-1]
@@ -661,22 +670,26 @@ def main():
                         exif_dict = et.execute_json(f"{directory}/{filename}")
                     exif_dict = exif_dict[0]
                     filetype = exif_dict['File:MIMEType'].split("/")[0]
-                    # use file type to determine what method to use
-                    if "EXIF:PageNumber" in exif_dict and exif_dict['EXIF:PageNumber'] != "0 0":
-                        access_files.append(filename)
+                # use file type to determine what method to use
+                if "EXIF:PageNumber" in exif_dict and exif_dict['EXIF:PageNumber'] != "0 0":
+                    access_files.append(filename)
+                    ext_list.add(filename.split(".")[-1].lower())
+                    multi_page += 1
+                elif filename2.endswith("_prsv") and filetype == 'image':
+                    preservation_files.append(filename)
+                elif filename2.endswith("_prsv") and exif_dict['File:MIMEType'] == 'application/vnd.adobe.photoshop':
+                    preservation_files.append(filename)
+                elif filename2.endswith("_prsv") and exif_dict['File:MIMEType'] == 'application/pdf':
+                    preservation_files.append(filename)
+                elif filename2.endswith("_mezz") and filetype == 'image':
+                    mezzanine_files.append(filename)
+                elif filename2.endswith("_access") and filetype == 'image':
+                    presentation_files.append(filename)
+                else:
+                    access_files.append(filename)
+                    if "_prsv" in filename:
                         ext_list.add(filename.split(".")[-1].lower())
-                        multi_page += 1
-                    elif filename2.endswith("_prsv") and filetype == 'image':
-                        preservation_files.append(filename)
-                    elif filename2.endswith("_mezz") and filetype == 'image':
-                        mezzanine_files.append(filename)
-                    elif filename2.endswith("_access") and filetype == 'image':
-                        presentation_files.append(filename)
-                    else:
-                        access_files.append(filename)
-                        if "_prsv" in filename:
-                            ext_list.add(filename.split(".")[-1].lower())
-                            pdf_counter += 1
+                        pdf_counter += 1
         preservation_files.sort()
         presentation_files.sort()
         access_files.sort()
@@ -718,10 +731,11 @@ def main():
                 valuation = size_eval(f"{directory}/{master}")
                 size.text = str(valuation[0])
                 size.attrib['unit'] = valuation[1]
-                imageWidth = tech_stuff.find('imageWidth')
-                imageWidth.attrib['unit'] = 'pixels'
-                imageLength = tech_stuff.find('imageLength')
-                imageLength.attrib['unit'] = 'pixels'
+                if exif_dict['standardAndFileWrapper'] != "application/pdf":
+                    imageWidth = tech_stuff.find('imageWidth')
+                    imageWidth.attrib['unit'] = 'pixels'
+                    imageLength = tech_stuff.find('imageLength')
+                    imageLength.attrib['unit'] = 'pixels'
                 derived = tech_stuff.find('derivedFrom')
                 derived.text = valuables['obj_object_identifier'][-1]
                 root_filename = master.split(".")[0].replace("_prsv", "")
