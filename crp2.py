@@ -37,7 +37,15 @@ def prettify(elem):
     reparse = minidom.parseString(rough_string)
     return reparse.toprettyxml(indent="    ")
 
-
+def camelCase(elem):
+    metadata_string = elem
+    if "-" in metadata_string:
+        metadata_string = metadata_string.replace("-", " ")
+    if " " in metadata_string:
+        metadata_string = metadata_string.title().replace(" ", "")
+        metadata_string = metadata_string[0].lower() + metadata_string[1:]
+    metadata_string = metadata_string.replace("Is", "is")
+    return metadata_string
 # actual checksum creator. keyed on md5 but can be configured for any checksum method
 def checksummer(named_file):
     md5_hash = hashlib.md5()
@@ -594,17 +602,17 @@ def main():
                             tag_list = valuables[key][0].split(":")[1].split(";")
                             tag_count = 0
                             for item in tag_list:
-                                thingy = ET.SubElement(metadata, f'{prefix}:{item}')
+                                thingy = ET.SubElement(metadata, f'{prefix}:{camelCase(item)}')
                                 thingy.text = split_list[tag_count]
                                 tag_count += 1
                         else:
                             for item in split_list:
-                                thingy = ET.SubElement(metadata, valuables[key][0])
+                                thingy = ET.SubElement(metadata, camelCase(valuables[key][0]))
                                 thingy.text = item
                                 if export_type == 'dc' and key in dc_attrib_dict:
                                     thingy.attrib['type'] = dc_attrib_dict[key]
                     else:
-                        thingy = ET.SubElement(metadata, valuables[key][0])
+                        thingy = ET.SubElement(metadata, camelCase(valuables[key][0]))
                         thingy.text = valuables[key][-1]
                         # take care of unnecessary line breaks
                         if '\n' in thingy.text:
